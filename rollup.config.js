@@ -1,5 +1,6 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
+import scss from 'rollup-plugin-scss';
 
 export default [{
     input: 'src/client/client.js',
@@ -7,7 +8,10 @@ export default [{
         file: 'dist/client/js/client.js',
         format: 'iife'
     },
-    plugins: [ commonjs(), resolve() ]
+    plugins: [commonjs(), resolve(), scss({
+        // Filename to write all styles to
+        output: 'dist/client/style/style.css',
+    })]
 }, {
     input: 'src/server/index.js',
     output: [
@@ -16,5 +20,5 @@ export default [{
             format: 'cjs'
         },
     ],
-    plugins: [ commonjs(), resolve() ]
+    plugins: [commonjs(), resolve()]
 }];

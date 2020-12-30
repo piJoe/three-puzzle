@@ -1,8 +1,10 @@
-import m from "mithril";
-import { PuzzleGeneratorPage } from "./components/puzzle-generator/PuzzleGeneratorPage";
+import './scss/style.scss';
+
+import m from 'mithril';
+import { PuzzleGeneratorPage } from './components/puzzle-generator/PuzzleGeneratorPage';
 
 const routes = {
-    "/": PuzzleGeneratorPage,
+    '/': PuzzleGeneratorPage,
 };
 
-m.route(document.body, "/", routes);
+m.route(document.body, '/', routes);
