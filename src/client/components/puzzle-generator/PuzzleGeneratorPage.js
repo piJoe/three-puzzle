@@ -1,5 +1,9 @@
+import m from 'mithril';
+
 export const PuzzleGeneratorPage = {
     view: function () {
-        return 'I bims vong puzzle generation her...';
+        return m('.puzzle-gen', [
+            m('h1', 'Puzzle gen here...')
+        ]);
     }
 };
