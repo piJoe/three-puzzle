@@ -1,0 +1,4 @@
+legacy
+node_modules
+dist/client/js
+dist/server/server.js

@@ -1,0 +1,28 @@
+{
+  "name": "jigsaw-engine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup --config",
+    "watch": "rollup --config --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "binary-parser-encoder": "^1.5.3",
+    "flatten-svg": "^0.2.1",
+    "mithril": "^2.0.4",
+    "node-gzip": "^1.1.2",
+    "svg-path-bbox": "^0.2.0",
+    "svg-path-utils": "0.0.3",
+    "svgdom": "^0.1.8",
+    "svgpath": "^2.3.0",
+    "three": "^0.124.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^17.0.0",
+    "@rollup/plugin-node-resolve": "^11.0.1"
+  }
+}
