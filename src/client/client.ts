@@ -2,8 +2,8 @@ import './scss/style.scss';
 
 import m from 'mithril';
 import { mapObjIndexed } from "ramda";
-import { IPage } from 'client/components/IPage';
-import { PuzzleGeneratorPage } from 'client/components/puzzle-generator/PuzzleGeneratorPage';
+import { IPage } from 'client/components/pages/IPage';
+import { PuzzleGeneratorPage } from 'client/components/pages/puzzle-generator/PuzzleGeneratorPage';
 import { MainWrapper } from 'client/components/main-wrapper/MainWrapper';
 
 const routeMap = {

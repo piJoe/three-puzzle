@@ -1,9 +1,8 @@
 import m, { Vnode } from 'mithril';
-import { IPage } from 'client/components/IPage';
+import { IPage } from 'client/components/pages/IPage';
 
 export const PuzzleGeneratorPage: IPage = {
-    hideMainLayout: true,
-    view: function () {
+    view: (): Vnode => {
         return m('.puzzle-gen', [
             m('h1', 'Puzzle gen here...')
         ]);
