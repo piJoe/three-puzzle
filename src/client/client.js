@@ -2,20 +2,22 @@ import './scss/style.scss';
 
 import m from 'mithril';
 import { mapObjIndexed } from "ramda";
-import { IPage } from 'client/components/pages/IPage';
 import { PuzzleGeneratorPage } from 'client/components/pages/puzzle-generator/PuzzleGeneratorPage';
 import { MainWrapper } from 'client/components/main-wrapper/MainWrapper';
 
 const routeMap = {
-    '/': PuzzleGeneratorPage,
+    '/': {
+        hideMainLayout: false,
+        page: PuzzleGeneratorPage
+    },
 };
 
-const routes = mapObjIndexed((r: IPage): any => ({
+const routes = mapObjIndexed((route) => ({
     render: () => {
-        if (r.hideMainLayout) {
-            return m(r);
+        if (route.hideMainLayout) {
+            return m(route.page);
         }
-        return m(MainWrapper, m(r));
+        return m(MainWrapper, m(route.page));
     }
 }), routeMap);
 m.route(document.body, '/', routes);
