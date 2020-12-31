@@ -2,12 +2,15 @@ import './style.scss';
 
 import m from 'mithril';
 import { any } from "ramda";
+import { generatePuzzleData } from '../../../lib/puzzle/puzzle-gen';
 
 export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
     let pieceCount = 300;
-    let imageSrc = "";
-    let puzzleContainer;
+    let imageSrc = '';
+    let puzzleContainerDOM;
+    let imageDOM;
     let dragging = 0;
+    let containerSize = [800,600];
 
     const updatePieceCount = (value) => {
         pieceCount = parseInt(value);
@@ -20,14 +23,15 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
         }
     }
 
-    const generatePuzzle = () => {
-        console.log('me generating like a baws!', pieceCount, imageSrc);
+    const resizeImageContainer = (boundingBox) => {
+        const { width, height } = boundingBox;
+        containerSize = [width, height];
     }
 
     const dragOverEvent = (e) => {
         e.preventDefault();
 
-        const inTarget = any((d) => d === puzzleContainer, e.path);
+        const inTarget = any((d) => d === puzzleContainerDOM, e.path);
         if (!inTarget) {
             e.dataTransfer.dropEffect = 'none';
         }
@@ -35,23 +39,81 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
     const pasteEvent = (e) => {
         e.preventDefault();
         updateImage([...e.clipboardData.items].map(i => i.getAsFile()).filter(f => f !== null));
+        m.redraw();
     }
+
+    const clickUploadEvent = (e) => {
+        e.preventDefault();
+        const imgInput = document.createElement('input');
+        imgInput.setAttribute('type', 'file');
+        imgInput.click();
+        
+        const changeEvent = (e) => {
+            updateImage(imgInput.files);
+            imgInput.removeEventListener('change', changeEvent);
+            imgInput.remove();
+            m.redraw();
+        };
+        imgInput.addEventListener('change', changeEvent);
+    };
 
     const preventDefaultEvent = (e) => {
         e.preventDefault();
     }
 
+    const generatePuzzle = async () => {
+        const {naturalWidth, naturalHeight} = imageDOM;
+
+        let scale = 1;
+        if (naturalWidth > naturalHeight && naturalWidth > 4096) {
+            scale = 4096/naturalWidth;
+        } else if (naturalHeight > naturalWidth && naturalHeight > 4096) {
+            scale = 4096/naturalHeight;
+        }
+        const newWidth = Math.round(naturalWidth*scale), newHeight = Math.round(naturalHeight*scale);
+        console.log(naturalWidth, naturalHeight, newWidth, newHeight);
+
+        const c = new OffscreenCanvas(newWidth,newHeight);
+        const ctx = c.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0,0, newWidth, newHeight);
+        ctx.drawImage(imageDOM, 0, 0, newWidth, newHeight);
+
+        const finalImage = await c.convertToBlob({
+            type: 'image/jpeg',
+            quality: 0.9,
+        });
+        const finalImageURL = URL.createObjectURL(finalImage);
+
+        console.log((finalImage.size/1024/1024).toFixed(2)+'MB', finalImageURL);
+
+        const puzzleData = generatePuzzleData({
+            width: newWidth,
+            height: newHeight,
+            tabSize: 22,
+            jitter: 3.5,
+            pieceCount: pieceCount,
+            tabVar: 1.0,
+            midVar: 0.0,
+            nipVar: 0.25,
+        });
+
+        
+        console.log(puzzleData);
+    }
+
     return {
         oncreate: (vnode) => {
-            console.log('create', vnode);
-            puzzleContainer = vnode.dom.querySelector('.puzzle-gen-image-container');
+            puzzleContainerDOM = vnode.dom.querySelector('.puzzle-gen-image-container');
+            imageDOM = vnode.dom.querySelector('.puzzle-gen-image');
+
             document.addEventListener('dragover', dragOverEvent);
             document.addEventListener('drop', preventDefaultEvent);
             document.addEventListener('paste', pasteEvent);
         },
 
         onremove: () => {
-            console.log('remove');
             document.removeEventListener('dragover', dragOverEvent);
             document.removeEventListener('drop', preventDefaultEvent);
             document.removeEventListener('paste', pasteEvent);
@@ -67,15 +129,17 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
                 }, [
                     m('.puzzle-gen-cover-title', ['Puzzle (', pieceCount, ' pieces)']),
                     m('.puzzle-gen-image-container', {
-                        config: (e) => console.log(e),
                         class: dragging > 0 ? 'puzzle-gen-image-container--dragging' : '',
+                        style: {
+                            width: containerSize[0]+'px',
+                            height: containerSize[1]+'px',
+                        },
+                        onclick: clickUploadEvent,
                         ondragenter: (e) => {
-                            console.log('dragenter');
                             e.preventDefault();
                             dragging++;
                         },
                         ondragleave: (e) => {
-                            console.log('dragleave');
                             e.preventDefault();
                             dragging--;
                         },
@@ -86,7 +150,12 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
                         },
                     }, [
                         m('.puzzle-gen-image-container-helper', ['Drop or paste image here', m('br'), 'click to select file']),
-                        m('img.puzzle-gen-image', { src: imageSrc }),
+                        m('img.puzzle-gen-image', { 
+                            src: imageSrc,
+                            onload: function() {
+                                resizeImageContainer(this.getBoundingClientRect());
+                            }
+                        }),
                     ]),
                     m('.puzzle-gen-cover-label', 'Raoulensburger'),
                 ]),
@@ -101,7 +170,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
                     m('input[type="button"]', {
                         value: "Generate",
                         onclick: generatePuzzle
-                    })
+                    }),
                 ]),
             ];
         }
