@@ -1,6 +1,7 @@
 import { SVGPathUtils } from "svg-path-utils";
 import { svgPathBbox } from "svg-path-bbox";
 import svgpath from "svgpath";
+import { flattenSVG } from "flatten-svg";
 const utils = new SVGPathUtils();
 
 let pieces = [];
@@ -53,8 +54,8 @@ function p1w() { return w(a); }
 function p2l() { return l(mid + b + d); }
 function p2w() { return w(-t + c); }
 
-function p3l() { return l(mid - (t*0.6) + b); }
-function p3w() { return w((t*0.6) + c); }
+function p3l() { return l(mid - (t * 0.6) + b); }
+function p3w() { return w((t * 0.6) + c); }
 
 function p4l() { return l(mid - (2.6 + nipW) * t + b - d); }
 function p4w() { return w((3.0 + nipW) * t + c); }
@@ -62,8 +63,8 @@ function p4w() { return w((3.0 + nipW) * t + c); }
 function p5l() { return l(mid2 + (2.6 + nipW) * t2 + b - d); }
 function p5w() { return w((3.0 + nipW) * t2 + c2); }
 
-function p6l() { return l(mid2 + (t2*0.6) + b); }
-function p6w() { return w((t2*0.6) + c2); }
+function p6l() { return l(mid2 + (t2 * 0.6) + b); }
+function p6w() { return w((t2 * 0.6) + c2); }
 
 function p7l() { return l(mid + b + d); }
 function p7w() { return w(-t2 + c2); }
@@ -204,6 +205,10 @@ function roundNumber(n) {
     return Math.round((n + Number.EPSILON) * power) / power;
 }
 
+function removeM(path) {
+    return path.replace(/M[\s]*[0-9\.]+[\s\,]*[0-9\.]+[\s]+/g, '');
+}
+
 function calculatePieceCount(fullWidth, fullHeight, targetCount) {
 
     const ratio_w = fullWidth / fullHeight;
@@ -261,14 +266,14 @@ export const generatePuzzleData = function generatePuzzleData(config) {
             const r2 = rawRows[x + y * yn + yn].path;
 
             const path = svgpath(
-                (utils.inversePath(c) + " " + 
-                removeM(utils.inversePath(r)) + " " + 
-                removeM(c2) + " " + 
-                removeM(r2)).trim() + " Z")
-                .translate(-(y * pW), -(x* pH))
-                .scale(1/pW, 1/pH)
+                (utils.inversePath(c) + " " +
+                    removeM(utils.inversePath(r)) + " " +
+                    removeM(c2) + " " +
+                    removeM(r2)).trim() + " Z")
+                .translate(-(y * pW), -(x * pH))
+                .scale(1 / pW, 1 / pH)
                 .rel()
-                .round(ROUND_PRECISION) 
+                .round(ROUND_PRECISION)
                 .toString();
 
             const piece = {
@@ -288,6 +293,7 @@ export const generatePuzzleData = function generatePuzzleData(config) {
             bBox = bBox.map(n => roundNumber(n));
 
             piece.bBox = { x: bBox[0], y: bBox[1], width: roundNumber(bBox[2] - bBox[0]), height: roundNumber(bBox[3] - bBox[1]) };
+            //@todo: fix bBox and offset (sizing is way off because of scaling)
             piece.offset = {
                 x: roundNumber(piece.bBox.x - piece.x * pW),
                 y: roundNumber(piece.bBox.y - piece.y * pH),
@@ -406,6 +412,53 @@ export const generatePuzzleData = function generatePuzzleData(config) {
 }
 
 
-function removeM(path) {
-    return path.replace(/M[\s]*[0-9\.]+[\s\,]*[0-9\.]+[\s]+/g, '');
-}
+export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, workingDOM = document.body) {
+    const { pieces, pieceSize } = puzzle;
+
+    const ppm = 300;
+    const realPieceSize = [pieceSize[0]/ppm, pieceSize[1]/ppm];
+    const realPieceMaxSize = Math.min(realPieceSize[0], realPieceSize[1]);
+    console.log(realPieceSize);
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+    const g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+    g.setAttribute('transform', `scale(${(realPieceSize[0])},${(realPieceSize[1])})`);
+    g.setAttribute('style', 'visibility: hidden; height: 0; width: 0;');
+    svg.append(g);
+    workingDOM.append(svg);
+
+    const pathColors = [
+        'rgba(255,0,0,0.8)',
+        'rgba(255,255,0,0.8)',
+        'rgba(0,255,0,0.8)',
+        'rgba(0,255,255,0.8)',
+        'rgba(0,0,255,0.8)',
+        'rgba(255,0,255,0.8)',
+    ];
+
+    for (let i = 0; i < pieces.length; i++) {
+        const piece = pieces[i];
+
+        const p = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+
+        p.setAttribute('d', piece.path);
+        p.dataset.no = pieces.length - 1;
+
+        g.append(p);
+    }
+
+    // *maxError* seems to match with zoom, 1 means 100%, 2 means 50% zoom, 0.5 means 200% zoom, ...
+    // appx.: doesn't really work all the time tho, smaller pieces need smaller maxErrors. needs further investigation
+    // probably just make this a slider between 0.1 and 2 for general "graphicsQuality" or similar. then scale accordingly 
+    // could probably generate quite a few LODs here, it's plenty fast for this
+    console.time('polygons_med');
+    const flattenedPaths = flattenSVG(svg, {
+        maxError: realPieceMaxSize/100,
+    });
+    const cleanPaths = flattenedPaths.map(p => p.points);
+    console.timeEnd('polygons_med');
+
+    svg.remove();
+
+    return cleanPaths;
+};

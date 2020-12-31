@@ -2,7 +2,8 @@ import './style.scss';
 
 import m from 'mithril';
 import { any } from "ramda";
-import { generatePuzzleData } from '../../../lib/puzzle/puzzle-gen';
+import { generatePuzzleData } from 'client/lib/puzzle/puzzle-utils';
+import { store } from 'client/store';
 
 export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
     let pieceCount = 300;
@@ -99,7 +100,10 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
             nipVar: 0.25,
         });
 
-        
+        store.puzzleData = {
+            ...puzzleData,
+            puzzleImage: finalImageURL,
+        };
         console.log(puzzleData);
     }
 
