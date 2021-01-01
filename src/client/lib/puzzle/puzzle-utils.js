@@ -451,7 +451,7 @@ export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, workingD
     // could probably generate quite a few LODs here, it's plenty fast for this
     console.time('polygons_med');
     const flattenedPaths = flattenSVG(svg, {
-        maxError: pieceMaxSize/100,
+        maxError: pieceMaxSize/200,
     });
     const cleanPaths = flattenedPaths.map(p => p.points);
     console.timeEnd('polygons_med');
