@@ -2,7 +2,7 @@ import './style.scss';
 
 import m from 'mithril';
 import { store } from 'client/store';
-import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, ExtrudeGeometry, MeshBasicMaterial, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, PCFSoftShadowMap, CameraHelper, Vector3, ExtrudeBufferGeometry } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, ExtrudeGeometry, MeshBasicMaterial, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, PCFSoftShadowMap, CameraHelper, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { generatePuzzlePaths } from 'client/lib/puzzle/puzzle-utils';
 import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils";
@@ -104,13 +104,15 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 bevelEnabled: true,
                 bevelThickness: (pieceMaxSize / 300),
                 bevelSize: (pieceMaxSize / 300),
+                // bevelThickness: 0,
+                // bevelSize: 0,
                 bevelOffset: -(pieceMaxSize / 200),
                 bevelSegments: 1,
             };
 
             const planeMaterial = new MeshStandardMaterial({
                 //map: loader.load(puzzleData.puzzleImage),
-                color: 0xd0d0d0,
+                color: 0x808080,
             });
             const plane = new PlaneGeometry(puzzleData.width * 3, puzzleData.height * 3);
             plane.center();
@@ -130,6 +132,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             const pieceGeometries = [];
             const pieceMeshes = [];
+            let bufferOffset = 0;
             for (let i = 0; i < puzzlePaths.length; i++) {
                 const puzzlePiece = puzzleData.pieces[i];
                 const shape = createShape(puzzlePaths[i]);
@@ -146,16 +149,31 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 const mesh = new Mesh(geometry, material);
                 mesh.castShadow = true;
-                mesh.visible = false;
+                mesh.visible = false; // @todo: maybe move our single puzzle pieces into another layer?
+
+                mesh.bufferOffset = bufferOffset;
+                bufferOffset += geometry.attributes.position.count;
+
                 scene.add(mesh);
                 pieceMeshes.push(mesh);
             }
 
+            const wireframe = new WireframeGeometry( pieceGeometries[0] );
+            const line = new LineSegments( wireframe );
+            line.material.depthTest = false;
+            line.material.opacity = 0.8;
+            line.material.transparent = true;
+            scene.add( line );
+
             console.time('merge');
-            const mesh = new Mesh(BufferGeometryUtils.mergeBufferGeometries(pieceGeometries), material);
-            mesh.castShadow = true;
-            scene.add(mesh);
+            const merged = BufferGeometryUtils.mergeBufferGeometries(pieceGeometries);
             console.timeEnd('merge');
+            console.time('newmesh');
+            const allMesh = new Mesh(merged, material);
+            allMesh.castShadow = true;
+            scene.add(allMesh);
+            console.timeEnd('newmesh');
+            
 
             // const helper = new CameraHelper(directionalLight.shadow.camera);
             // scene.add(helper);
@@ -186,10 +204,67 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             controls.update();
 
             let hasChanged = false;
-            function animate() {
+            let lastTime = 0;
+
+            let currentObject = 0;
+            let currentTime = 0;
+            let curTrans = new Vector3(-1 + Math.random()*2, 0, -1 + Math.random()*2);
+            function animate(time) {
+                if (lastTime === 0) lastTime = time;
+                const delta = time - lastTime;
+                lastTime = time;
+
                 requestAnimationFrame(animate);
 
-                if (hasChanged) {
+                currentTime += delta;
+                if (false && currentTime > 60) { // switch to other object after 5 seconds
+                    currentTime = 0;
+
+                    console.time('update mesh');
+                    // hide old piece, merge back into geometry array
+                    const oldMesh = pieceMeshes[currentObject];
+                    oldMesh.visible = false;
+                    oldMesh.updateMatrix(); 
+                    oldMesh.geometry.applyMatrix4( oldMesh.matrix );
+                    oldMesh.matrix.identity();
+                    oldMesh.position.set( 0, 0, 0 );
+
+                    // update allMesh position
+                    const oldArray = oldMesh.geometry.attributes.position.array;
+                    const offset = oldMesh.bufferOffset;
+                    const allArray = allMesh.geometry.attributes.position.array;
+                    let i = 0;
+                    while (i < oldArray.length) {
+                        allArray[(i)+(offset*3)] = oldArray[i];
+                        allArray[(i+1)+(offset*3)] = oldArray[i+1];
+                        allArray[(i+2)+(offset*3)] = oldArray[i+2];
+                        i+=3;
+                    }
+
+                    // set new piece, transforms, etc.
+                    curTrans = new Vector3(-1 + Math.random()*2, 0, -1 + Math.random()*2);
+                    if (currentObject+1 > pieceMeshes.length-1) {
+                        currentObject = -1;
+                    }
+                    currentObject++;
+                    pieceMeshes[currentObject].visible = true;
+
+                    // set all vertices for current piece in allMesh to 0 (will not be visible)
+                    i = pieceMeshes[currentObject].bufferOffset*3;
+                    const endP = pieceMeshes[currentObject].bufferOffset*3 + pieceMeshes[currentObject].geometry.attributes.position.count*3;
+                    while (i < endP) {
+                        allArray[i] = 0;
+                        allArray[i+1] = 0;
+                        allArray[i+2] = 0;
+                        i+=3;
+                    }
+                    allMesh.geometry.attributes.position.needsUpdate = true;
+                    console.timeEnd('update mesh');
+                }
+
+                pieceMeshes[currentObject].translateOnAxis(curTrans, delta*0.5);
+
+                if (true || hasChanged) {
                     renderer.render(scene, camera);
                 }
                 hasChanged = false;
@@ -197,6 +272,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             controls.addEventListener('change', () => {
                 hasChanged = true;
             });
+            renderer.render(scene, camera);
             requestAnimationFrame(animate);
         },
         onremove: () => {
