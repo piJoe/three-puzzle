@@ -301,19 +301,19 @@ export const generatePuzzleData = function generatePuzzleData(config) {
         }
     }
     pieces = pieces.map((p, i) => {
-        const neighbours = [];
+        const neighbours = [-1,-1,-1,-1]; //left top right bottom
         if (p.x > 0) {
-            neighbours.push(i - 1);
+            neighbours[0] = i - 1;
         }
         if (p.x < xn - 1) {
-            neighbours.push(i + 1);
+            neighbours[2] = i + 1;
         }
 
         if (p.y > 0) {
-            neighbours.push(i - 1 * xn);
+            neighbours[1] = i - 1 * xn;
         }
         if (p.y < yn - 1) {
-            neighbours.push(i + 1 * xn);
+            neighbours[3] = i + 1 * xn;
         }
         p.neighbours = neighbours;
         return p;
@@ -415,14 +415,12 @@ export const generatePuzzleData = function generatePuzzleData(config) {
 export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, workingDOM = document.body) {
     const { pieces, pieceSize } = puzzle;
 
-    const ppm = 300;
-    const realPieceSize = [pieceSize[0]/ppm, pieceSize[1]/ppm];
-    const realPieceMaxSize = Math.min(realPieceSize[0], realPieceSize[1]);
-    console.log(realPieceSize);
+    const pieceMaxSize = Math.min(pieceSize[0], pieceSize[1]);
+    // console.log(realPieceSize);
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
     const g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-    g.setAttribute('transform', `scale(${(realPieceSize[0])},${(realPieceSize[1])})`);
+    g.setAttribute('transform', `scale(${(pieceSize[0])},${(pieceSize[1])})`);
     g.setAttribute('style', 'visibility: hidden; height: 0; width: 0;');
     svg.append(g);
     workingDOM.append(svg);
@@ -453,7 +451,7 @@ export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, workingD
     // could probably generate quite a few LODs here, it's plenty fast for this
     console.time('polygons_med');
     const flattenedPaths = flattenSVG(svg, {
-        maxError: realPieceMaxSize/100,
+        maxError: pieceMaxSize/100,
     });
     const cleanPaths = flattenedPaths.map(p => p.points);
     console.timeEnd('polygons_med');

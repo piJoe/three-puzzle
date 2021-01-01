@@ -22,7 +22,7 @@
     "svg-path-utils": "0.0.3",
     "svgdom": "^0.1.8",
     "svgpath": "^2.3.0",
-    "three": "^0.124.0"
+    "three": "^0.122.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
