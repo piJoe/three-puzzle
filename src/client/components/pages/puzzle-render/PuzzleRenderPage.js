@@ -99,7 +99,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             const extrudeSettings = {
                 steps: 1,
-                depth: (pieceMaxSize / 10),
+                depth: (pieceMaxSize / 20),
 
                 bevelEnabled: true,
                 bevelThickness: (pieceMaxSize / 300),
@@ -115,7 +115,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const plane = new PlaneGeometry(puzzleData.width * 3, puzzleData.height * 3);
             plane.center();
             plane.rotateX(-Math.PI / 2);
-            plane.translate(puzzleData.width / 1.6, -(pieceMaxSize / 20), puzzleData.height / 1.6);
+            plane.translate(puzzleData.width / 1.6, -(pieceMaxSize / 40), puzzleData.height / 1.6);
             const planeM = new Mesh(plane, planeMaterial);
             planeM.receiveShadow = true;
             scene.add(planeM);
@@ -185,13 +185,18 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             camera.position.set(0, 0, pieceMaxSize * 10);
             controls.update();
 
+            let hasChanged = false;
             function animate() {
                 requestAnimationFrame(animate);
 
-                // required if controls.enableDamping or controls.autoRotate are set to true
-                controls.update();
-                renderer.render(scene, camera);
+                if (hasChanged) {
+                    renderer.render(scene, camera);
+                }
+                hasChanged = false;
             }
+            controls.addEventListener('change', () => {
+                hasChanged = true;
+            });
             requestAnimationFrame(animate);
         },
         onremove: () => {
