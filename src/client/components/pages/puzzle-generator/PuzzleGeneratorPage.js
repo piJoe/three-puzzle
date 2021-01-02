@@ -62,7 +62,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
         e.preventDefault();
     }
 
-    const generatePuzzle = async () => {
+    const generateImage = async () => {
         const {naturalWidth, naturalHeight} = imageDOM;
 
         let scale = 1;
@@ -88,7 +88,14 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
         const finalImageURL = URL.createObjectURL(finalImage);
 
         console.log((finalImage.size/1024/1024).toFixed(2)+'MB', finalImageURL);
+        return {
+            blob: finalImage,
+            url : finalImageURL,
+        };
+    }
 
+    function calculateRealPuzzleSize() {
+        const {naturalWidth, naturalHeight} = imageDOM;
         // calculate real puzzle width/height in cm
         let realWidth, realHeight;
         if (naturalWidth >= naturalHeight) {
@@ -98,13 +105,19 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
             realHeight = Math.max(25 ,Math.min(95, pieceCount/10));
             realWidth = realHeight/(naturalHeight/naturalWidth);
         }
-        
+        return {
+            width: realWidth,
+            height: realHeight
+        };
+    }
+
+    const generatePuzzle = async () => {
+        const {url: finalImageURL} = await generateImage();
+        const {width, height} = calculateRealPuzzleSize();
 
         const puzzleData = generatePuzzleData({
-            // width: newWidth,
-            // height: newHeight,
-            width: realWidth, //cm
-            height: realHeight, //cm
+            width, //cm
+            height, //cm
             tabSize: 22,
             jitter: 3.5,
             pieceCount: pieceCount,
