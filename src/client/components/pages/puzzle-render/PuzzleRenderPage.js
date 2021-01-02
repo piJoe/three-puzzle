@@ -74,7 +74,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // const axesHelper = new AxesHelper(5);
             // scene.add(axesHelper);
 
-            const ambientLight = new AmbientLight(0x404040); // soft white light
+            const ambientLight = new AmbientLight(0x909090); // soft white light
             scene.add(ambientLight);
 
             const directionalLight = new DirectionalLight(0xffffff, 0.7);

@@ -92,10 +92,10 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
         // calculate real puzzle width/height in cm
         let realWidth, realHeight;
         if (naturalWidth >= naturalHeight) {
-            realWidth = Math.max(25 ,Math.min(100, pieceCount/10));
+            realWidth = Math.max(25 ,Math.min(95, pieceCount/10));
             realHeight = realWidth/(naturalWidth/naturalHeight);
         } else if (naturalHeight > naturalWidth) {
-            realHeight = Math.max(25 ,Math.min(100, pieceCount/10));
+            realHeight = Math.max(25 ,Math.min(95, pieceCount/10));
             realWidth = realHeight/(naturalHeight/naturalWidth);
         }
         
