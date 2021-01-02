@@ -2,7 +2,7 @@ import './style.scss';
 
 import m from 'mithril';
 import { store } from 'client/store';
-import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap, RepeatWrapping } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { generatePuzzlePaths } from 'client/lib/puzzle/puzzle-utils';
 import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils";
@@ -97,7 +97,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const ambientLight = new AmbientLight(0xffffff*0.2); // soft white light
             scene.add(ambientLight);
 
-            const directionalLight = new DirectionalLight(0xffffff, 0.8);
+            const directionalLight = new DirectionalLight(0xffffff, 3.0);
             directionalLight.position.set(puzzleData.width, 2, 0);
             directionalLight.lookAt(puzzleData.width / 2, 0, puzzleData.height / 2);
             directionalLight.target.position.set(puzzleData.width / 2, 0, puzzleData.height / 2);
@@ -148,10 +148,12 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             scene.add(planeM);
 
             const loader = new TextureLoader();
-            // const material = new MeshBasicMaterial({
-            //     map: loader.load(puzzleData.puzzleImage),
-            // });
-            const detailMap = loader.load('/resources/test_roughness.png');
+            const detailMap = loader.load('/resources/test_roughness.png', (map) => {
+                map.wrapS = RepeatWrapping;
+                map.wrapT = RepeatWrapping;
+                map.repeat.set(4,4);
+                map.needsUpdate = true;
+            });
             const material = new MeshStandardMaterial({
                 map: loader.load(puzzleData.puzzleImage),
                 roughnessMap: detailMap,
@@ -215,6 +217,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 antialias: true,
                 logarithmicDepthBuffer: true,
             });
+            renderer.physicallyCorrectLights = true;
             // renderer.shadowMap.enabled = true;
             // renderer.shadowMap.type = PCFSoftShadowMap;
 
