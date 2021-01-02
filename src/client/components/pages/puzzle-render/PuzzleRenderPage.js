@@ -2,7 +2,7 @@ import './style.scss';
 
 import m from 'mithril';
 import { store } from 'client/store';
-import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { generatePuzzlePaths } from 'client/lib/puzzle/puzzle-utils';
 import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils";
@@ -62,8 +62,28 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const puzzlePaths = generatePuzzlePaths(puzzleData);
             // console.log(puzzlePaths);
 
+            const raycaster = new Raycaster();
+            raycaster.layers.set(1);
+
+            const mouse = new Vector2();
+            function onMouseMove(event) {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+            }
+            window.addEventListener('pointermove', onMouseMove);
+
+            let pickupDown = false;
+            let pickedObject = null;
+            function key(k, isDown) {
+                if (k.toLowerCase() === 'f') pickupDown = isDown;
+            }
+            window.addEventListener('keydown', (e) => key(e.key, true));
+            window.addEventListener('keyup', (e) => key(e.key, false));
+
             const scene = new Scene();
-            const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.001, 5000);
+            const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.001, 500);
+            camera.layers.enable(0);
+            camera.layers.enable(1);
             // const camera = new OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0.01, 1000);
 
             // const geometry = new BoxGeometry();
@@ -74,23 +94,27 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // const axesHelper = new AxesHelper(5);
             // scene.add(axesHelper);
 
-            const ambientLight = new AmbientLight(0x909090); // soft white light
+            const ambientLight = new AmbientLight(0xffffff*0.2); // soft white light
             scene.add(ambientLight);
 
-            const directionalLight = new DirectionalLight(0xffffff, 0.7);
-            directionalLight.position.set(puzzleData.width, 1000, 0);
+            const directionalLight = new DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(puzzleData.width, 2, 0);
+            directionalLight.lookAt(puzzleData.width / 2, 0, puzzleData.height / 2);
             directionalLight.target.position.set(puzzleData.width / 2, 0, puzzleData.height / 2);
 
             // directionalLight.castShadow = true;
             // directionalLight.shadow.mapSize.width = 2048; // default
             // directionalLight.shadow.mapSize.height = 2048; // default
-            // directionalLight.shadow.camera.near = 0.1; // default
-            // directionalLight.shadow.camera.far = 5000; // default
+            // directionalLight.shadow.camera.near = 0.0001; // default
+            // directionalLight.shadow.camera.far = 4; // default
             // directionalLight.shadow.camera.left = -puzzleData.height*2;
             // directionalLight.shadow.camera.right = puzzleData.height*2;
             // directionalLight.shadow.camera.top = -puzzleData.width*2;
             // directionalLight.shadow.camera.bottom = puzzleData.width*2;
             // window.light = directionalLight;
+
+            const helper = new CameraHelper( directionalLight.shadow.camera, 1 );
+            scene.add( helper );
 
             scene.add(directionalLight);
             scene.add(directionalLight.target);
@@ -144,12 +168,15 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 geometry.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
                 // geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
                 geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
+                geometry.computeVertexNormals();
 
                 pieceGeometries.push(geometry);
 
                 const mesh = new Mesh(geometry, material);
                 mesh.castShadow = true;
+                mesh.receiveShadow = true;
                 // mesh.visible = false; // @todo: maybe move our single puzzle pieces into another layer?
+                mesh.layers.set(1);
 
                 mesh.bufferOffset = bufferOffset;
                 bufferOffset += geometry.attributes.position.count;
@@ -158,12 +185,13 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 pieceMeshes.push(mesh);
             }
 
-            const wireframe = new WireframeGeometry(pieceGeometries[0]);
-            const line = new LineSegments(wireframe);
-            line.material.depthTest = false;
-            line.material.opacity = 0.8;
-            line.material.transparent = true;
-            scene.add(line);
+            const dot = new SphereGeometry(0.002);
+            const raycastMat = new MeshStandardMaterial({
+                color: 0xff0000,
+            });
+            const raycastPoint = new Mesh(dot, raycastMat);
+            raycastPoint.renderOrder = 1;
+            scene.add(raycastPoint);
 
             // console.time('merge');
             // const merged = BufferGeometryUtils.mergeBufferGeometries(pieceGeometries);
@@ -199,8 +227,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 BOTTOM: 83 // down arrow
             };
             //controls.update() must be called after any manual changes to the camera's transform
-            // camera.position.set(0, 0, 1);
-            camera.position.set(0, 0, pieceMaxSize * 10);
+            camera.position.set(0, 1, 0);
+            camera.lookAt(0,0,0);
             controls.update();
 
             let hasChanged = false;
@@ -260,6 +288,24 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // pieceMeshes[currentObject].translateOnAxis(curTrans, delta*0.5);
                 // hasChanged = true;
 
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(scene.children);
+                if (intersects.length > 0) {
+                    raycastPoint.position.set(intersects[0].point.x,intersects[0].point.y,intersects[0].point.z);
+                    // console.log(mouse, intersects[0]);
+                    if (pickupDown && pickedObject === null) {
+                        pickedObject = intersects[0].object;
+                        pickedObject.translateY(0.01);
+                    }
+                }
+
+                if (!pickupDown && pickedObject !== null) {
+                    pickedObject.translateY(-0.01);
+                    pickedObject = null;
+                }
+                
+
+                hasChanged = true;
                 if (hasChanged) {
                     renderer.render(scene, camera);
                 }
