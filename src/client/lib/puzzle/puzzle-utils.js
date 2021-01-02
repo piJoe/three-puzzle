@@ -301,7 +301,7 @@ export const generatePuzzleData = function generatePuzzleData(config) {
         }
     }
     pieces = pieces.map((p, i) => {
-        const neighbours = [-1,-1,-1,-1]; //left top right bottom
+        const neighbours = [-1, -1, -1, -1]; //left top right bottom
         if (p.x > 0) {
             neighbours[0] = i - 1;
         }
@@ -395,9 +395,9 @@ export const generatePuzzleData = function generatePuzzleData(config) {
     // }
 
     return {
-        width: width/100,
-        height: height/100,
-        pieceSize: [pW/100, pH/100], // convert cm to m
+        width: width / 100,
+        height: height / 100,
+        pieceSize: [pW / 100, pH / 100], // convert cm to m
         pieces,
 
         // puzzleBytes: puzzleParser.encode({
@@ -411,8 +411,13 @@ export const generatePuzzleData = function generatePuzzleData(config) {
     };
 }
 
-
-export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, workingDOM = document.body) {
+/**
+ * 
+ * @param {*} puzzle - puzzle data loaded from json
+ * @param {number} quality - default is 75, below 50 results in garbage, above 100 is probably not useful
+ * @param {HTMLElement} workingDOM - defaults to document.body, is needed to create the temporary svg element for path calculations
+ */
+export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, quality = 75, workingDOM = document.body) {
     const { pieces, pieceSize } = puzzle;
 
     const pieceMaxSize = Math.min(pieceSize[0], pieceSize[1]);
@@ -436,16 +441,10 @@ export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, workingD
         g.append(p);
     }
 
-    // *maxError* seems to match with zoom, 1 means 100%, 2 means 50% zoom, 0.5 means 200% zoom, ...
-    // appx.: doesn't really work all the time tho, smaller pieces need smaller maxErrors. needs further investigation
-    // probably just make this a slider between 0.1 and 2 for general "graphicsQuality" or similar. then scale accordingly 
-    // could probably generate quite a few LODs here, it's plenty fast for this
-    console.time('polygons_med');
     const flattenedPaths = flattenSVG(svg, {
-        maxError: pieceMaxSize/200,
+        maxError: pieceMaxSize / quality,
     });
     const cleanPaths = flattenedPaths.map(p => p.points);
-    console.timeEnd('polygons_med');
 
     svg.remove();
 

@@ -62,7 +62,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
         e.preventDefault();
     }
 
-    const generateImage = async () => {
+    const rescaleImage = async () => {
         const {naturalWidth, naturalHeight} = imageDOM;
 
         let scale = 1;
@@ -112,7 +112,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
     }
 
     const generatePuzzle = async () => {
-        const {url: finalImageURL} = await generateImage();
+        const {url: finalImageURL} = await rescaleImage();
         const {width, height} = calculateRealPuzzleSize();
 
         const puzzleData = generatePuzzleData({

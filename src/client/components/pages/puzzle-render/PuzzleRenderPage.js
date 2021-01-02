@@ -2,7 +2,7 @@ import './style.scss';
 
 import m from 'mithril';
 import { store } from 'client/store';
-import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, ExtrudeGeometry, MeshBasicMaterial, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, PCFSoftShadowMap, CameraHelper, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { generatePuzzlePaths } from 'client/lib/puzzle/puzzle-utils';
 import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils";
@@ -149,7 +149,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 const mesh = new Mesh(geometry, material);
                 mesh.castShadow = true;
-                mesh.visible = false; // @todo: maybe move our single puzzle pieces into another layer?
+                // mesh.visible = false; // @todo: maybe move our single puzzle pieces into another layer?
 
                 mesh.bufferOffset = bufferOffset;
                 bufferOffset += geometry.attributes.position.count;
@@ -158,22 +158,22 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 pieceMeshes.push(mesh);
             }
 
-            const wireframe = new WireframeGeometry( pieceGeometries[0] );
-            const line = new LineSegments( wireframe );
+            const wireframe = new WireframeGeometry(pieceGeometries[0]);
+            const line = new LineSegments(wireframe);
             line.material.depthTest = false;
             line.material.opacity = 0.8;
             line.material.transparent = true;
-            scene.add( line );
+            scene.add(line);
 
-            console.time('merge');
-            const merged = BufferGeometryUtils.mergeBufferGeometries(pieceGeometries);
-            console.timeEnd('merge');
-            console.time('newmesh');
-            const allMesh = new Mesh(merged, material);
-            allMesh.castShadow = true;
-            scene.add(allMesh);
-            console.timeEnd('newmesh');
-            
+            // console.time('merge');
+            // const merged = BufferGeometryUtils.mergeBufferGeometries(pieceGeometries);
+            // console.timeEnd('merge');
+            // console.time('newmesh');
+            // const allMesh = new Mesh(merged, material);
+            // allMesh.castShadow = true;
+            // scene.add(allMesh);
+            // console.timeEnd('newmesh');
+
 
             // const helper = new CameraHelper(directionalLight.shadow.camera);
             // scene.add(helper);
@@ -208,7 +208,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             let currentObject = 0;
             let currentTime = 0;
-            let curTrans = new Vector3(-1 + Math.random()*2, 0, -1 + Math.random()*2);
+            let curTrans = new Vector3(-1 + Math.random() * 2, 0, -1 + Math.random() * 2);
             function animate(time) {
                 if (lastTime === 0) lastTime = time;
                 const delta = time - lastTime;
