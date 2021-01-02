@@ -120,6 +120,19 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             scene.add(directionalLight);
             scene.add(directionalLight.target);
 
+            const renderer = new WebGLRenderer({
+                antialias: true,
+                logarithmicDepthBuffer: true,
+            });
+            renderer.physicallyCorrectLights = true;
+            // renderer.outputEncoding = sRGBEncoding;
+            // renderer.toneMapping = ReinhardToneMapping;
+            // renderer.shadowMap.enabled = true;
+            // renderer.shadowMap.type = PCFSoftShadowMap;
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            canvasDOM.appendChild(renderer.domElement);
+
             const pieceMaxSize = Math.min(puzzleData.pieceSize[0], puzzleData.pieceSize[1]);
 
             const extrudeSettings = {
@@ -159,13 +172,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 }),
                 roughness: 1.2,
             });
-            const plane = new PlaneGeometry(puzzleData.width * 3, puzzleData.height * 3);
-            plane.center();
-            plane.rotateX(-Math.PI / 2);
-            plane.translate(puzzleData.width / 2, -(pieceMaxSize / 20), puzzleData.height /  2);
-            const planeM = new Mesh(plane, planeMaterial);
-            planeM.receiveShadow = true;
-            scene.add(planeM);
 
             const detailMap = loader.load('/resources/test_roughness.png', (map) => {
                 map.wrapS = RepeatWrapping;
@@ -180,7 +186,14 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 bumpScale: 0.0002,
                 // roughness: 0.45,
             });
-            window.mat = material;
+
+            const plane = new PlaneGeometry(puzzleData.width * 3, puzzleData.height * 3);
+            plane.center();
+            plane.rotateX(-Math.PI / 2);
+            plane.translate(puzzleData.width / 2, -(pieceMaxSize / 20), puzzleData.height /  2);
+            const planeM = new Mesh(plane, planeMaterial);
+            planeM.receiveShadow = true;
+            scene.add(planeM);
 
             const pieceGeometries = [];
             const pieceMeshes = [];
@@ -202,7 +215,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 const mesh = new Mesh(geometry, material);
                 // mesh.castShadow = true;
-                mesh.visible = false; // @todo: maybe move our single puzzle pieces into another layer?
+                // mesh.visible = false; //
                 mesh.layers.set(1);
 
                 mesh.bufferOffset = bufferOffset;
@@ -220,31 +233,18 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             raycastPoint.renderOrder = 1;
             scene.add(raycastPoint);
 
-            console.time('merge');
-            const merged = BufferGeometryUtils.mergeBufferGeometries(pieceGeometries);
-            console.timeEnd('merge');
-            console.time('newmesh');
-            const allMesh = new Mesh(merged, material);
-            allMesh.castShadow = true;
-            scene.add(allMesh);
-            console.timeEnd('newmesh');
+            // console.time('merge');
+            // const merged = BufferGeometryUtils.mergeBufferGeometries(pieceGeometries);
+            // console.timeEnd('merge');
+            // console.time('newmesh');
+            // const allMesh = new Mesh(merged, material);
+            // allMesh.castShadow = true;
+            // scene.add(allMesh);
+            // console.timeEnd('newmesh');
 
 
             // const helper = new CameraHelper(directionalLight.shadow.camera);
             // scene.add(helper);
-
-            const renderer = new WebGLRenderer({
-                antialias: true,
-                logarithmicDepthBuffer: true,
-            });
-            renderer.physicallyCorrectLights = true;
-            // renderer.outputEncoding = sRGBEncoding;
-            // renderer.toneMapping = ReinhardToneMapping;
-            // renderer.shadowMap.enabled = true;
-            // renderer.shadowMap.type = PCFSoftShadowMap;
-
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            canvasDOM.appendChild(renderer.domElement);
 
             const controls = new OrbitControls(camera, renderer.domElement);
             // controls.enableRotate = false;
