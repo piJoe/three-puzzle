@@ -101,6 +101,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             directionalLight.position.set(puzzleData.width, 2, 0);
             directionalLight.lookAt(puzzleData.width / 2, 0, puzzleData.height / 2);
             directionalLight.target.position.set(puzzleData.width / 2, 0, puzzleData.height / 2);
+            window.light = directionalLight;
 
             // directionalLight.castShadow = true;
             // directionalLight.shadow.mapSize.width = 2048; // default
@@ -113,8 +114,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // directionalLight.shadow.camera.bottom = puzzleData.width*2;
             // window.light = directionalLight;
 
-            const helper = new CameraHelper( directionalLight.shadow.camera, 1 );
-            scene.add( helper );
+            // const helper = new DirectionalLightHelper( directionalLight, 1 );
+            // scene.add( helper );
 
             scene.add(directionalLight);
             scene.add(directionalLight.target);
@@ -150,9 +151,15 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // const material = new MeshBasicMaterial({
             //     map: loader.load(puzzleData.puzzleImage),
             // });
+            const detailMap = loader.load('/resources/test_roughness.png');
             const material = new MeshStandardMaterial({
                 map: loader.load(puzzleData.puzzleImage),
+                roughnessMap: detailMap,
+                bumpMap: detailMap,
+                bumpScale: 0.0002,
+                // roughness: 0.45,
             });
+            window.mat = material;
 
             const pieceGeometries = [];
             const pieceMeshes = [];
@@ -168,13 +175,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 geometry.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
                 // geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
                 geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
-                geometry.computeVertexNormals();
 
                 pieceGeometries.push(geometry);
 
                 const mesh = new Mesh(geometry, material);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
+                // mesh.castShadow = true;
                 // mesh.visible = false; // @todo: maybe move our single puzzle pieces into another layer?
                 mesh.layers.set(1);
 

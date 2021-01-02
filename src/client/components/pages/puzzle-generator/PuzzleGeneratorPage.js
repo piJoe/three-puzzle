@@ -105,9 +105,12 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
             realHeight = Math.max(25 ,Math.min(95, pieceCount/10));
             realWidth = realHeight/(naturalHeight/naturalWidth);
         }
+
+        Math.round((realWidth + Number.EPSILON) * 1000) / 1000;
+
         return {
-            width: realWidth,
-            height: realHeight
+            width: Math.round((realWidth + Number.EPSILON) * 1000) / 1000,
+            height: Math.round((realHeight + Number.EPSILON) * 1000) / 1000,
         };
     }
 

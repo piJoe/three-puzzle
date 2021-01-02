@@ -2,6 +2,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import scss from 'rollup-plugin-scss';
 import includePaths from "rollup-plugin-includepaths";
+import copy from 'rollup-plugin-copy';
 
 const includePathOptions = {
     include: {},
@@ -18,13 +19,21 @@ export default [{
         compact: true,
         sourcemap: true,
     },
-    plugins: [includePaths(includePathOptions), commonjs(), resolve(), scss({
+    plugins: [copy({
+        targets: [
+            { src: 'resources/**/*', dest: 'dist/client/resources' }
+        ]
+    }),
+    includePaths(includePathOptions),
+    commonjs(),
+    resolve(),
+    scss({
         // Filename to write all styles to
         output: 'dist/client/style/style.css',
     })]
 }, {
     input: 'src/server/index.js',
-    output: 
+    output:
     {
         file: 'dist/server/server.js',
         format: 'cjs',
