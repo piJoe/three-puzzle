@@ -150,6 +150,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     map.repeat.set(12*puzzleData.width, 12*puzzleData.height);
                     map.needsUpdate = true;
                 }),
+                normalScale: new Vector2(-1,-1),
                 roughnessMap: loader.load('/resources/wood_table/roughness.jpg', (map) => {
                     map.wrapS = RepeatWrapping;
                     map.wrapT = RepeatWrapping;
