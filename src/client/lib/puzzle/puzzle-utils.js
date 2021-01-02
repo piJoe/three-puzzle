@@ -425,15 +425,6 @@ export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, workingD
     svg.append(g);
     workingDOM.append(svg);
 
-    const pathColors = [
-        'rgba(255,0,0,0.8)',
-        'rgba(255,255,0,0.8)',
-        'rgba(0,255,0,0.8)',
-        'rgba(0,255,255,0.8)',
-        'rgba(0,0,255,0.8)',
-        'rgba(255,0,255,0.8)',
-    ];
-
     for (let i = 0; i < pieces.length; i++) {
         const piece = pieces[i];
 

@@ -169,6 +169,8 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
                         onchange: (e) => updatePieceCount(e.target.value),
                     }, [
                         50, 100, 200, 300, 400, 500, 700, 800, 1000
+                        // @todo: figure out sane values for piece sizes relative to total piece count
+                        // (500-1000 pieces = ~ 2*2cm, 200-400 = ~ 3*3cm, 50-100 = ~4*4cm)
                     ].map(val => m('option', { selected: val === pieceCount }, val))),
                     ' ',
                     m('input[type="button"]', {

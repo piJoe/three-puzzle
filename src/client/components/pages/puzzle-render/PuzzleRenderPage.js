@@ -216,55 +216,51 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 requestAnimationFrame(animate);
 
-                currentTime += delta;
-                if (false && currentTime > 60) { // switch to other object after 5 seconds
-                    currentTime = 0;
+                // currentTime += delta;
+                // if (currentTime > 60) { // switch to other object after 5 seconds
+                //     currentTime = 0;
+                //     console.time('update mesh');
+                //     // hide old piece, merge back into geometry array
+                //     const oldMesh = pieceMeshes[currentObject];
+                //     oldMesh.visible = false;
+                //     oldMesh.updateMatrix(); 
+                //     oldMesh.geometry.applyMatrix4( oldMesh.matrix );
+                //     oldMesh.matrix.identity();
+                //     oldMesh.position.set( 0, 0, 0 );
+                //     // update allMesh position
+                //     const oldArray = oldMesh.geometry.attributes.position.array;
+                //     const offset = oldMesh.bufferOffset;
+                //     const allArray = allMesh.geometry.attributes.position.array;
+                //     let i = 0;
+                //     while (i < oldArray.length) {
+                //         allArray[(i)+(offset*3)] = oldArray[i];
+                //         allArray[(i+1)+(offset*3)] = oldArray[i+1];
+                //         allArray[(i+2)+(offset*3)] = oldArray[i+2];
+                //         i+=3;
+                //     }
+                //     // set new piece, transforms, etc.
+                //     curTrans = new Vector3(-1 + Math.random()*2, 0, -1 + Math.random()*2);
+                //     if (currentObject+1 > pieceMeshes.length-1) {
+                //         currentObject = -1;
+                //     }
+                //     currentObject++;
+                //     pieceMeshes[currentObject].visible = true;
+                //     // set all vertices for current piece in allMesh to 0 (will not be visible)
+                //     i = pieceMeshes[currentObject].bufferOffset*3;
+                //     const endP = pieceMeshes[currentObject].bufferOffset*3 + pieceMeshes[currentObject].geometry.attributes.position.count*3;
+                //     while (i < endP) {
+                //         allArray[i] = 0;
+                //         allArray[i+1] = 0;
+                //         allArray[i+2] = 0;
+                //         i+=3;
+                //     }
+                //     allMesh.geometry.attributes.position.needsUpdate = true;
+                //     console.timeEnd('update mesh');
+                // }
+                // pieceMeshes[currentObject].translateOnAxis(curTrans, delta*0.5);
+                // hasChanged = true;
 
-                    console.time('update mesh');
-                    // hide old piece, merge back into geometry array
-                    const oldMesh = pieceMeshes[currentObject];
-                    oldMesh.visible = false;
-                    oldMesh.updateMatrix(); 
-                    oldMesh.geometry.applyMatrix4( oldMesh.matrix );
-                    oldMesh.matrix.identity();
-                    oldMesh.position.set( 0, 0, 0 );
-
-                    // update allMesh position
-                    const oldArray = oldMesh.geometry.attributes.position.array;
-                    const offset = oldMesh.bufferOffset;
-                    const allArray = allMesh.geometry.attributes.position.array;
-                    let i = 0;
-                    while (i < oldArray.length) {
-                        allArray[(i)+(offset*3)] = oldArray[i];
-                        allArray[(i+1)+(offset*3)] = oldArray[i+1];
-                        allArray[(i+2)+(offset*3)] = oldArray[i+2];
-                        i+=3;
-                    }
-
-                    // set new piece, transforms, etc.
-                    curTrans = new Vector3(-1 + Math.random()*2, 0, -1 + Math.random()*2);
-                    if (currentObject+1 > pieceMeshes.length-1) {
-                        currentObject = -1;
-                    }
-                    currentObject++;
-                    pieceMeshes[currentObject].visible = true;
-
-                    // set all vertices for current piece in allMesh to 0 (will not be visible)
-                    i = pieceMeshes[currentObject].bufferOffset*3;
-                    const endP = pieceMeshes[currentObject].bufferOffset*3 + pieceMeshes[currentObject].geometry.attributes.position.count*3;
-                    while (i < endP) {
-                        allArray[i] = 0;
-                        allArray[i+1] = 0;
-                        allArray[i+2] = 0;
-                        i+=3;
-                    }
-                    allMesh.geometry.attributes.position.needsUpdate = true;
-                    console.timeEnd('update mesh');
-                }
-
-                pieceMeshes[currentObject].translateOnAxis(curTrans, delta*0.5);
-
-                if (true || hasChanged) {
+                if (hasChanged) {
                     renderer.render(scene, camera);
                 }
                 hasChanged = false;

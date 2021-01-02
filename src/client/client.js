@@ -1,5 +1,6 @@
 import './scss/style.scss';
 
+import './polyfills';
 import m from 'mithril';
 import { mapObjIndexed } from "ramda";
 import { PuzzleGeneratorPage } from 'client/components/pages/puzzle-generator/PuzzleGeneratorPage';
