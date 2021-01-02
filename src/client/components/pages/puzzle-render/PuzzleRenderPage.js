@@ -63,7 +63,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // console.log(puzzlePaths);
 
             const scene = new Scene();
-            const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50000);
+            const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.001, 5000);
             // const camera = new OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0.01, 1000);
 
             // const geometry = new BoxGeometry();

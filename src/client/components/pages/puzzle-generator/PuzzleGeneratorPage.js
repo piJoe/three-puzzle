@@ -89,9 +89,22 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
 
         console.log((finalImage.size/1024/1024).toFixed(2)+'MB', finalImageURL);
 
+        // calculate real puzzle width/height in cm
+        let realWidth, realHeight;
+        if (naturalWidth >= naturalHeight) {
+            realWidth = Math.max(25 ,Math.min(100, pieceCount/10));
+            realHeight = realWidth/(naturalWidth/naturalHeight);
+        } else if (naturalHeight > naturalWidth) {
+            realHeight = Math.max(25 ,Math.min(100, pieceCount/10));
+            realWidth = realHeight/(naturalHeight/naturalWidth);
+        }
+        
+
         const puzzleData = generatePuzzleData({
-            width: newWidth,
-            height: newHeight,
+            // width: newWidth,
+            // height: newHeight,
+            width: realWidth, //cm
+            height: realHeight, //cm
             tabSize: 22,
             jitter: 3.5,
             pieceCount: pieceCount,

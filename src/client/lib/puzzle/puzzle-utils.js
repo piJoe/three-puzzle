@@ -395,9 +395,9 @@ export const generatePuzzleData = function generatePuzzleData(config) {
     // }
 
     return {
-        width,
-        height,
-        pieceSize: [pW, pH],
+        width: width/100,
+        height: height/100,
+        pieceSize: [pW/100, pH/100], // convert cm to m
         pieces,
 
         // puzzleBytes: puzzleParser.encode({
