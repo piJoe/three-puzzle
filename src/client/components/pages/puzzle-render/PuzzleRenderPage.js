@@ -2,7 +2,7 @@ import './style.scss';
 
 import m from 'mithril';
 import { store } from 'client/store';
-import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap, RepeatWrapping, sRGBEncoding, ReinhardToneMapping, BasicShadowMap, MeshBasicMaterial, Object3D, PlaneBufferGeometry, PMREMGenerator, MOUSE, BackSide, NeverDepth, AlwaysDepth } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap, RepeatWrapping, sRGBEncoding, ReinhardToneMapping, BasicShadowMap, MeshBasicMaterial, Object3D, PlaneBufferGeometry, PMREMGenerator, MOUSE, BackSide, NeverDepth, AlwaysDepth, Line, LineBasicMaterial } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { generatePuzzlePaths } from 'client/lib/puzzle/puzzle-utils';
 import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils";
@@ -230,6 +230,16 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             const shadowGeo = new PlaneBufferGeometry(pieceMaxSize * 3, pieceMaxSize * 3);
 
+            const validPositions = [];
+            for(let i = 0; i < puzzleData.pieces.length; i++) {
+                const piece = puzzleData.pieces[i];
+                validPositions.push(new Vector3(
+                    puzzleData.pieceSize[0] * piece.x * 1.6,
+                    0,
+                    puzzleData.pieceSize[1] * piece.y * 1.6
+                ));
+            }
+
             const pieceGeometries = [];
             const pieceMeshes = [];
             let bufferOffset = 0;
@@ -272,11 +282,16 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 shadowMesh.visible = false;
 
                 base.add(shadowMesh);
+                base.puzzleInfo = puzzlePiece;
                 // base.layers.set(1);
 
                 // base.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
                 // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
-                base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
+                // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
+                const pos = validPositions.splice(Math.floor(Math.random()*validPositions.length), 1)[0];
+                // base.position.set(pos.x, pos.y, pos.z);
+                base.position.copy(pos);
+                console.log(base.position);
 
                 scene.add(base);
                 pieceMeshes.push(base);
@@ -291,6 +306,22 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             raycastPoint.layers.set(9);
             // raycastPoint.visible = true;
             scene.add(raycastPoint);
+
+
+            const connectGeo = new Geometry();
+            const nullVec = new Vector3(0,0,0);
+            connectGeo.vertices.push(nullVec,nullVec,nullVec,nullVec,nullVec,nullVec,nullVec,nullVec);
+            connectGeo.verticesNeedUpdate = true;
+            const connectMat = new LineBasicMaterial({
+                color: 0x00ff00,
+                // depthTest: false,
+                // depthWrite: false,
+            });
+            const connectLine = new LineSegments(connectGeo, connectMat);
+            connectLine.name = 'Meine Line';
+            connectLine.layers.set(9);
+            connectLine.frustumCulled = false;
+            scene.add(connectLine);
 
             // console.time('merge');
             // const merged = BufferGeometryUtils.mergeBufferGeometries(pieceGeometries);
@@ -452,7 +483,20 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         pickedObject.startTime = time;
                         pickedObject.animDuration = 30;
 
-                        raycastPoint.position.copy(point);//.setY(pickedObject.position.y);
+                        raycastPoint.position.copy(point).setY(pickedObject.position.y);
+
+                        // debug neighbours
+                        connectLine.geometry.vertices = [];
+                        for (let i = 0; i < pickedObject.puzzleInfo.neighbours.length; i++) {
+                            const neighbourNo = pickedObject.puzzleInfo.neighbours[i];
+                            if (neighbourNo < 0) {
+                                connectLine.geometry.vertices.push(nullVec, nullVec);
+                            } else {
+                                const neighbour = pieceMeshes[neighbourNo];
+                                connectLine.geometry.vertices.push(pickedObject.position.clone().setY(0.003), neighbour.position.clone().setY(0.003));
+                            }
+                        }
+                        connectLine.geometry.verticesNeedUpdate = true;
                     }
                 }
 
@@ -465,6 +509,9 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     //pickedObject.translateY(-0.01);
                     pickedObject.children[1].visible = false;
                     pickedObject = null;
+
+                    connectLine.geometry.vertices = [nullVec, nullVec,nullVec, nullVec,nullVec, nullVec,nullVec, nullVec];
+                    connectLine.geometry.verticesNeedUpdate = true;
                 }
 
                 hasChanged = true;
