@@ -2,7 +2,7 @@ import './style.scss';
 
 import m from 'mithril';
 import { store } from 'client/store';
-import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap, RepeatWrapping, sRGBEncoding, ReinhardToneMapping } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap, RepeatWrapping, sRGBEncoding, ReinhardToneMapping, BasicShadowMap, MeshBasicMaterial, Object3D, PlaneBufferGeometry } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { generatePuzzlePaths } from 'client/lib/puzzle/puzzle-utils';
 import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils";
@@ -114,21 +114,23 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // directionalLight.shadow.camera.bottom = puzzleData.width*2;
             // window.light = directionalLight;
 
-            // const helper = new DirectionalLightHelper( directionalLight, 1 );
-            // scene.add( helper );
+            // const dhelper = new DirectionalLightHelper( directionalLight, 1 );
+            // scene.add( dhelper );
+
+            // const shelper = new CameraHelper(directionalLight.shadow.camera);
+            // scene.add(shelper);
 
             scene.add(directionalLight);
             scene.add(directionalLight.target);
 
             const renderer = new WebGLRenderer({
                 antialias: true,
-                logarithmicDepthBuffer: true,
             });
             renderer.physicallyCorrectLights = true;
             // renderer.outputEncoding = sRGBEncoding;
             // renderer.toneMapping = ReinhardToneMapping;
             // renderer.shadowMap.enabled = true;
-            // renderer.shadowMap.type = PCFSoftShadowMap;
+            // renderer.shadowMap.type = BasicShadowMap;
 
             renderer.setSize(window.innerWidth, window.innerHeight);
             canvasDOM.appendChild(renderer.domElement);
@@ -154,20 +156,20 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 map: loader.load('/resources/wood_table/color.jpg', (map) => {
                     map.wrapS = RepeatWrapping;
                     map.wrapT = RepeatWrapping;
-                    map.repeat.set(12*puzzleData.width, 12*puzzleData.height);
+                    map.repeat.set(10*puzzleData.width, 10*puzzleData.height);
                     map.needsUpdate = true;
                 }),
                 normalMap: loader.load('/resources/wood_table/normal.jpg', (map) => {
                     map.wrapS = RepeatWrapping;
                     map.wrapT = RepeatWrapping;
-                    map.repeat.set(12*puzzleData.width, 12*puzzleData.height);
+                    map.repeat.set(10*puzzleData.width, 10*puzzleData.height);
                     map.needsUpdate = true;
                 }),
                 normalScale: new Vector2(-1,-1),
                 roughnessMap: loader.load('/resources/wood_table/roughness.jpg', (map) => {
                     map.wrapS = RepeatWrapping;
                     map.wrapT = RepeatWrapping;
-                    map.repeat.set(12*puzzleData.width, 12*puzzleData.height);
+                    map.repeat.set(10*puzzleData.width, 10*puzzleData.height);
                     map.needsUpdate = true;
                 }),
                 roughness: 1.2,
@@ -182,18 +184,28 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const material = new MeshStandardMaterial({
                 map: loader.load(puzzleData.puzzleImage),
                 roughnessMap: detailMap,
+                roughness: 1.1,
                 bumpMap: detailMap,
                 bumpScale: 0.0002,
                 // roughness: 0.45,
             });
 
+            const fakeShadowMat = new MeshBasicMaterial({
+                map: loader.load('/resources/shadowmap.png'),
+                transparent: true,
+                depthWrite: false,
+                opacity: 0.5,
+            });
+
             const plane = new PlaneGeometry(puzzleData.width * 3, puzzleData.height * 3);
             plane.center();
             plane.rotateX(-Math.PI / 2);
-            plane.translate(puzzleData.width / 2, -(pieceMaxSize / 20), puzzleData.height /  2);
+            plane.translate(puzzleData.width*1.6 / 2, -(pieceMaxSize / 20), puzzleData.height*1.6 /  2);
             const planeM = new Mesh(plane, planeMaterial);
             planeM.receiveShadow = true;
             scene.add(planeM);
+
+            const shadowGeo = new PlaneBufferGeometry(pieceMaxSize*3, pieceMaxSize*3);
 
             const pieceGeometries = [];
             const pieceMeshes = [];
@@ -209,20 +221,40 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // geometry.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
                 // geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
                 // geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
-                geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
+                //geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
 
                 pieceGeometries.push(geometry);
 
+                const base = new Object3D();
+
                 const mesh = new Mesh(geometry, material);
                 // mesh.castShadow = true;
-                // mesh.visible = false; //
+                // mesh.receiveShadow = true;
+                // mesh.visible = false;
                 mesh.layers.set(1);
 
                 mesh.bufferOffset = bufferOffset;
                 bufferOffset += geometry.attributes.position.count;
 
-                scene.add(mesh);
-                pieceMeshes.push(mesh);
+                mesh.position.set(-puzzleData.pieceSize[0]/2, 0, -puzzleData.pieceSize[1]/2);
+
+                base.add(mesh);
+
+                const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
+                shadowMesh.name = 'shadow';
+                shadowMesh.rotateX(-Math.PI / 2);
+                shadowMesh.position.set(pieceMaxSize/2 - puzzleData.pieceSize[0]/2, -0.0095, pieceMaxSize/2 - puzzleData.pieceSize[1]/2);
+                shadowMesh.visible = false;
+
+                base.add(shadowMesh);
+                // base.layers.set(1);
+
+                base.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
+                base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
+                // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
+
+                scene.add(base);
+                pieceMeshes.push(base);
             }
 
             const dot = new SphereGeometry(0.002);
@@ -231,6 +263,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             });
             const raycastPoint = new Mesh(dot, raycastMat);
             raycastPoint.renderOrder = 1;
+            raycastPoint.visible = false;
             scene.add(raycastPoint);
 
             // console.time('merge');
@@ -241,10 +274,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // allMesh.castShadow = true;
             // scene.add(allMesh);
             // console.timeEnd('newmesh');
-
-
-            // const helper = new CameraHelper(directionalLight.shadow.camera);
-            // scene.add(helper);
 
             const controls = new OrbitControls(camera, renderer.domElement);
             // controls.enableRotate = false;
@@ -319,18 +348,20 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // hasChanged = true;
 
                 raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(scene.children);
+                const intersects = raycaster.intersectObjects(scene.children, true);
                 if (intersects.length > 0) {
                     raycastPoint.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
                     // console.log(mouse, intersects[0]);
                     if (pickupDown && pickedObject === null) {
-                        pickedObject = intersects[0].object;
+                        pickedObject = intersects[0].object.parent;
+                        pickedObject.children[1].visible = true;
                         pickedObject.translateY(0.01);
                     }
                 }
 
                 if (!pickupDown && pickedObject !== null) {
                     pickedObject.translateY(-0.01);
+                    pickedObject.children[1].visible = false;
                     pickedObject = null;
                 }
 
