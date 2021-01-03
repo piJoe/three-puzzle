@@ -67,7 +67,7 @@ function createSpawnPositions(x, y, x2, y2, length) {
             ...getPositionsFromBox(x - 1, y - 1, x2 + 1, y - 1),
             ...getPositionsFromBox(x - 1, y, x - 1, y2 + 1),
             ...getPositionsFromBox(x, y2 + 1, x2, y2 + 1),
-            ...getPositionsFromBox(x2 + 1, y, x2 + 1, y2),
+            ...getPositionsFromBox(x2 + 1, y, x2 + 1, y2+1),
         );
 
         x -= 1;
@@ -75,7 +75,7 @@ function createSpawnPositions(x, y, x2, y2, length) {
         x2 += 1;
         y2 += 1;
     }
-    return positions;
+    return positions.slice(0, length);
 }
 
 export const PuzzleRenderPage = function PuzzleRenderPage() {
@@ -206,7 +206,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     map.repeat.set(20 * puzzleData.width, 20 * puzzleData.height);
                     map.needsUpdate = true;
                 }),
-                color: 0x888888,
+                color: 0x4d4d4d,
             });
             window.felt = planeMaterial;
 
