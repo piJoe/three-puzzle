@@ -258,7 +258,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const shadowGeo = new PlaneBufferGeometry(pieceMaxSize * 3, pieceMaxSize * 3);
 
             const lastPiece = puzzleData.pieces[puzzleData.pieces.length - 1];
-            const validPositions = createSpawnPositions(0, 0, Math.ceil(lastPiece.x/1.6), Math.ceil(lastPiece.y/1.6), puzzleData.pieces.length).map(p => {
+            const validPositions = createSpawnPositions(0, 0, lastPiece.x, lastPiece.y, puzzleData.pieces.length).map(p => {
                 return new Vector3(
                     puzzleData.pieceSize[0] * p.x * 1.6,
                     0,
@@ -356,7 +356,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const raycastPoint = new Mesh(dot, raycastMat);
             // raycastPoint.position.set(0,0.1,0);
             raycastPoint.layers.set(9);
-            // raycastPoint.visible = true;
+            raycastPoint.visible = false;
             scene.add(raycastPoint);
 
 
