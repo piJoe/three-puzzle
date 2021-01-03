@@ -2,7 +2,7 @@ import './style.scss';
 
 import m from 'mithril';
 import { store } from 'client/store';
-import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap, RepeatWrapping, sRGBEncoding, ReinhardToneMapping, BasicShadowMap, MeshBasicMaterial, Object3D, PlaneBufferGeometry, PMREMGenerator, MOUSE } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap, RepeatWrapping, sRGBEncoding, ReinhardToneMapping, BasicShadowMap, MeshBasicMaterial, Object3D, PlaneBufferGeometry, PMREMGenerator, MOUSE, BackSide, NeverDepth, AlwaysDepth } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { generatePuzzlePaths } from 'client/lib/puzzle/puzzle-utils';
 import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils";
@@ -75,15 +75,17 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             let pickupDown = false;
             let pickedObject = null;
             function key(k, isDown) {
-                if (k.toLowerCase() === 'f') pickupDown = isDown;
+                // if (k.toLowerCase() === 'f') pickupDown = isDown;
+                if (k === 0) pickupDown = isDown;
             }
-            window.addEventListener('keydown', (e) => key(e.key, true));
-            window.addEventListener('keyup', (e) => key(e.key, false));
+            window.addEventListener('pointerdown', (e) => key(e.button, true));
+            window.addEventListener('pointerup', (e) => key(e.button, false));
 
             const scene = new Scene();
             const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.001, 500);
-            camera.layers.enable(0);
-            camera.layers.enable(1);
+            camera.layers.enableAll();
+            // camera.layers.enable(0);
+            // camera.layers.enable(1);
             // const camera = new OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0.01, 1000);
 
             // const geometry = new BoxGeometry();
@@ -210,6 +212,13 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 depthWrite: false,
                 opacity: 0.5,
             });
+            const fakeFullShadowMat = new MeshBasicMaterial({
+                transparent: true,
+                // depthWrite: false,
+                opacity: 0.4,
+                color: 0x000000,
+                depthFunc: NeverDepth,
+            });
 
             const plane = new PlaneGeometry(puzzleData.width * 3, puzzleData.height * 3);
             plane.center();
@@ -254,30 +263,33 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 base.add(mesh);
 
-                const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
+                // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
+                const shadowMesh = new Mesh(geometry, fakeFullShadowMat);
                 shadowMesh.name = 'shadow';
-                shadowMesh.rotateX(-Math.PI / 2);
-                shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0095, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);
+                // shadowMesh.rotateX(-Math.PI / 2);
+                // shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0098, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);
+                shadowMesh.position.set(-puzzleData.pieceSize[0] / 2, -0.0099, -puzzleData.pieceSize[1] / 2);
                 shadowMesh.visible = false;
 
                 base.add(shadowMesh);
                 // base.layers.set(1);
 
-                base.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
-                base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
-                // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
+                // base.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
+                // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
+                base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
 
                 scene.add(base);
                 pieceMeshes.push(base);
             }
 
             const dot = new SphereGeometry(0.002);
-            const raycastMat = new MeshStandardMaterial({
+            const raycastMat = new MeshBasicMaterial({
                 color: 0xff0000,
             });
             const raycastPoint = new Mesh(dot, raycastMat);
-            raycastPoint.renderOrder = 1;
-            raycastPoint.visible = false;
+            // raycastPoint.position.set(0,0.1,0);
+            raycastPoint.layers.set(9);
+            // raycastPoint.visible = true;
             scene.add(raycastPoint);
 
             // console.time('merge');
@@ -294,7 +306,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // controls.enableRotate = false;
             controls.maxPolarAngle = Math.PI / 2.1;
             controls.maxDistance = 3;
-            controls.minDistance = 0.01;
+            controls.minDistance = 0.05;
             controls.zoomSpeed = 2;
             controls.screenSpacePanning = false;
             controls.enableKeys = true;
@@ -372,24 +384,88 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // pieceMeshes[currentObject].translateOnAxis(curTrans, delta*0.5);
                 // hasChanged = true;
 
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(scene.children, true);
-                if (intersects.length > 0) {
-                    raycastPoint.position.set(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-                    // console.log(mouse, intersects[0]);
-                    if (pickupDown && pickedObject === null) {
-                        pickedObject = intersects[0].object.parent;
-                        pickedObject.children[1].visible = true;
-                        pickedObject.translateY(0.01);
+                // interpolate between positions
+                for (let i = 0; i < scene.children.length; i++) {
+                    const obj = scene.children[i];
+                    if (obj.startTime && obj.startPos && obj.targetPos) {
+                        const t = (time - obj.startTime) / obj.animDuration;
+                        obj.position.lerpVectors(obj.startPos, obj.targetPos, t);
+                        if (t >= 1) {
+                            obj.position.copy(obj.targetPos);
+                            obj.startPos = null;
+                            obj.targetPos = null;
+                            obj.startTime = null;
+                            obj.animDuration = null;
+                        }
                     }
                 }
 
+
+                raycaster.setFromCamera(mouse, camera);
+
+                // cast for virtual mouse pointer
+                if (pickedObject === null) {
+                    raycaster.layers.enableAll();
+                    raycaster.layers.disable(9);
+                    const intersect = raycaster.intersectObjects(scene.children, true)[0];
+                    if (intersect) {
+                        raycastPoint.position.copy(intersect.point);
+                        // console.log(raycastPoint.position);
+                    }
+                }
+
+                // cast for picking up objects
+                if (pickedObject === null) {
+                    raycaster.layers.set(1);
+                    const intersects = raycaster.intersectObjects(scene.children, true);
+                    if (intersects.length > 0) {
+                        // raycastPoint.position.copy(intersects[0].point);
+                        // console.log(mouse, intersects[0]);
+                        if (pickupDown) {
+                            pickedObject = intersects[0].object.parent;
+                            pickedObject.children[1].visible = true;
+                            pickedObject.startPos = pickedObject.targetPos ? pickedObject.targetPos.clone() : pickedObject.position.clone();
+                            pickedObject.startTime = time;
+                            pickedObject.animDuration = 50;
+                            pickedObject.targetPos = pickedObject.startPos.clone().setY(pickedObject.startPos.y + 0.01);
+
+                            pickedObject.grabOffset = new Vector2(intersects[0].point.x - pickedObject.startPos.x, intersects[0].point.z - pickedObject.startPos.z);
+
+                            // pickedObject.translateY(0.01);
+                        }
+                    }
+                }
+
+                // we're actively dragging an object
+                if (pickupDown && pickedObject !== null) {
+                    raycaster.layers.set(0);
+                    const intersection = raycaster.intersectObject(planeM)[0];
+                    if (intersection) {
+                        const point = intersection.point;
+
+                        let targetY = pickedObject.position.y;
+                        if (pickedObject.targetPos) {
+                            targetY = pickedObject.targetPos.y;
+                        }
+                        pickedObject.startPos = pickedObject.position.clone();
+                        pickedObject.targetPos = new Vector3(point.x - pickedObject.grabOffset.x, targetY, point.z - pickedObject.grabOffset.y);
+                        pickedObject.startTime = time;
+                        pickedObject.animDuration = 30;
+
+                        raycastPoint.position.copy(point);//.setY(pickedObject.position.y);
+                    }
+                }
+
+                // we stopped dragging an object
                 if (!pickupDown && pickedObject !== null) {
-                    pickedObject.translateY(-0.01);
+                    pickedObject.startPos = pickedObject.targetPos ? pickedObject.targetPos.clone() : pickedObject.position.clone();
+                    pickedObject.startTime = time;
+                    pickedObject.targetPos = pickedObject.startPos.clone().setY(pickedObject.startPos.y - 0.01);
+                    pickedObject.animDuration = 70;
+                    //pickedObject.translateY(-0.01);
                     pickedObject.children[1].visible = false;
                     pickedObject = null;
                 }
-
 
                 hasChanged = true;
                 if (hasChanged) {
