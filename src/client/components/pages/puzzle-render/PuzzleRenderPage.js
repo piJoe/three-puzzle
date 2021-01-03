@@ -160,27 +160,28 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const loader = new TextureLoader();
 
             const planeMaterial = new MeshStandardMaterial({
-                map: loader.load('/resources/wood_table/color.jpg', (map) => {
+                map: loader.load('/resources/felt/color.jpg', (map) => {
                     map.wrapS = RepeatWrapping;
                     map.wrapT = RepeatWrapping;
-                    map.repeat.set(10 * puzzleData.width, 10 * puzzleData.height);
+                    map.repeat.set(20 * puzzleData.width, 20 * puzzleData.height);
                     map.needsUpdate = true;
                 }),
-                normalMap: loader.load('/resources/wood_table/normal.jpg', (map) => {
+                normalMap: loader.load('/resources/felt/normal.jpg', (map) => {
                     map.wrapS = RepeatWrapping;
                     map.wrapT = RepeatWrapping;
-                    map.repeat.set(10 * puzzleData.width, 10 * puzzleData.height);
+                    map.repeat.set(20 * puzzleData.width, 20 * puzzleData.height);
                     map.needsUpdate = true;
                 }),
-                normalScale: new Vector2(-1, -1),
-                roughnessMap: loader.load('/resources/wood_table/roughness.jpg', (map) => {
+                // normalScale: new Vector2(-1, -1),
+                roughnessMap: loader.load('/resources/felt/roughness.jpg', (map) => {
                     map.wrapS = RepeatWrapping;
                     map.wrapT = RepeatWrapping;
-                    map.repeat.set(10 * puzzleData.width, 10 * puzzleData.height);
+                    map.repeat.set(20 * puzzleData.width, 20 * puzzleData.height);
                     map.needsUpdate = true;
                 }),
-                roughness: 1.2,
+                color: 0x888888,
             });
+            window.felt = planeMaterial;
 
             const detailMap = loader.load('/resources/test_roughness.png', (map) => {
                 map.wrapS = RepeatWrapping;
@@ -191,10 +192,9 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const material = new MeshStandardMaterial({
                 map: loader.load(puzzleData.puzzleImage),
                 roughnessMap: detailMap,
-                roughness: 1.1,
+                roughness: 0.98,
                 bumpMap: detailMap,
                 bumpScale: 0.0002,
-                // roughness: 0.45,
             });
 
             loader.load('/resources/envmap.jpg', (map) => {
@@ -231,13 +231,20 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const shadowGeo = new PlaneBufferGeometry(pieceMaxSize * 3, pieceMaxSize * 3);
 
             const validPositions = [];
-            for(let i = 0; i < puzzleData.pieces.length; i++) {
+            for (let i = 0; i < puzzleData.pieces.length; i++) {
                 const piece = puzzleData.pieces[i];
                 validPositions.push(new Vector3(
                     puzzleData.pieceSize[0] * piece.x * 1.6,
                     0,
                     puzzleData.pieceSize[1] * piece.y * 1.6
                 ));
+            }
+
+            const NEIGHBOUR_OFFSETS = {
+                0: new Vector3(-(puzzleData.pieceSize[0] / 2), 0, 0), // left
+                1: new Vector3(0, 0, -(puzzleData.pieceSize[1] / 2)), // top
+                2: new Vector3((puzzleData.pieceSize[0] / 2), 0, 0), // right
+                3: new Vector3(0, 0, (puzzleData.pieceSize[1] / 2)), // bottom
             }
 
             const pieceGeometries = [];
@@ -288,7 +295,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // base.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
                 // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
                 // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
-                const pos = validPositions.splice(Math.floor(Math.random()*validPositions.length), 1)[0];
+                const pos = validPositions.splice(Math.floor(Math.random() * validPositions.length), 1)[0];
                 // base.position.set(pos.x, pos.y, pos.z);
                 base.position.copy(pos);
                 console.log(base.position);
@@ -309,8 +316,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
 
             const connectGeo = new Geometry();
-            const nullVec = new Vector3(0,0,0);
-            connectGeo.vertices.push(nullVec,nullVec,nullVec,nullVec,nullVec,nullVec,nullVec,nullVec);
+            const nullVec = new Vector3(0, 0, 0);
+            connectGeo.vertices.push(nullVec, nullVec, nullVec, nullVec, nullVec, nullVec, nullVec, nullVec);
             connectGeo.verticesNeedUpdate = true;
             const connectMat = new LineBasicMaterial({
                 color: 0x00ff00,
@@ -493,7 +500,10 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                                 connectLine.geometry.vertices.push(nullVec, nullVec);
                             } else {
                                 const neighbour = pieceMeshes[neighbourNo];
-                                connectLine.geometry.vertices.push(pickedObject.position.clone().setY(0.003), neighbour.position.clone().setY(0.003));
+                                const selfOffset = NEIGHBOUR_OFFSETS[i];
+                                const neighbourOffset = (NEIGHBOUR_OFFSETS[(i + 2) % 4]);
+                                console.log(selfOffset, neighbourOffset);
+                                connectLine.geometry.vertices.push(pickedObject.position.clone().setY(0.003).add(selfOffset), neighbour.position.clone().setY(0.003).add(neighbourOffset));
                             }
                         }
                         connectLine.geometry.verticesNeedUpdate = true;
@@ -510,7 +520,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     pickedObject.children[1].visible = false;
                     pickedObject = null;
 
-                    connectLine.geometry.vertices = [nullVec, nullVec,nullVec, nullVec,nullVec, nullVec,nullVec, nullVec];
+                    connectLine.geometry.vertices = [nullVec, nullVec, nullVec, nullVec, nullVec, nullVec, nullVec, nullVec];
                     connectLine.geometry.verticesNeedUpdate = true;
                 }
 
