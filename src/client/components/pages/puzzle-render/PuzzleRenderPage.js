@@ -2,7 +2,7 @@ import './style.scss';
 
 import m from 'mithril';
 import { store } from 'client/store';
-import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap, RepeatWrapping, sRGBEncoding, ReinhardToneMapping, BasicShadowMap, MeshBasicMaterial, Object3D, PlaneBufferGeometry } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Mesh, Shape, Vector2, OrthographicCamera, TextureLoader, MeshStandardMaterial, AmbientLight, DirectionalLight, MathUtils, PlaneGeometry, Vector3, ExtrudeBufferGeometry, WireframeGeometry, LineSegments, Raycaster, BufferGeometry, PointsMaterial, Points, Geometry, SphereGeometry, DirectionalLightHelper, CameraHelper, PCFSoftShadowMap, RepeatWrapping, sRGBEncoding, ReinhardToneMapping, BasicShadowMap, MeshBasicMaterial, Object3D, PlaneBufferGeometry, PMREMGenerator, MOUSE } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { generatePuzzlePaths } from 'client/lib/puzzle/puzzle-utils';
 import { BufferGeometryUtils } from "three/examples/jsm/utils/BufferGeometryUtils";
@@ -39,7 +39,7 @@ const PuzzleUVGenerator = (puzzleData, i) => {
         },
 
         generateSideWallUV: function (geometry, vertices, indexA, indexB, indexC, indexD) {
-            const nullVec = new Vector2(0,1);
+            const nullVec = new Vector2(0, 1);
             return [
                 nullVec,
                 nullVec,
@@ -94,10 +94,10 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // const axesHelper = new AxesHelper(5);
             // scene.add(axesHelper);
 
-            const ambientLight = new AmbientLight(0xffffff * 0.2); // soft white light
-            scene.add(ambientLight);
+            // const ambientLight = new AmbientLight(0xffffff * 0.2); // soft white light
+            // scene.add(ambientLight);
 
-            const directionalLight = new DirectionalLight(0xffffff, 3.0);
+            const directionalLight = new DirectionalLight(0xffffff, 2);
             directionalLight.position.set(puzzleData.width, 2, 0);
             directionalLight.lookAt(puzzleData.width / 2, 0, puzzleData.height / 2);
             directionalLight.target.position.set(puzzleData.width / 2, 0, puzzleData.height / 2);
@@ -131,9 +131,14 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // renderer.toneMapping = ReinhardToneMapping;
             // renderer.shadowMap.enabled = true;
             // renderer.shadowMap.type = BasicShadowMap;
+            window.renderer = renderer;
 
             renderer.setSize(window.innerWidth, window.innerHeight);
             canvasDOM.appendChild(renderer.domElement);
+
+            const pmremGenerator = new PMREMGenerator(renderer);
+            pmremGenerator.compileEquirectangularShader();
+
 
             const pieceMaxSize = Math.min(puzzleData.pieceSize[0], puzzleData.pieceSize[1]);
 
@@ -156,20 +161,20 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 map: loader.load('/resources/wood_table/color.jpg', (map) => {
                     map.wrapS = RepeatWrapping;
                     map.wrapT = RepeatWrapping;
-                    map.repeat.set(10*puzzleData.width, 10*puzzleData.height);
+                    map.repeat.set(10 * puzzleData.width, 10 * puzzleData.height);
                     map.needsUpdate = true;
                 }),
                 normalMap: loader.load('/resources/wood_table/normal.jpg', (map) => {
                     map.wrapS = RepeatWrapping;
                     map.wrapT = RepeatWrapping;
-                    map.repeat.set(10*puzzleData.width, 10*puzzleData.height);
+                    map.repeat.set(10 * puzzleData.width, 10 * puzzleData.height);
                     map.needsUpdate = true;
                 }),
-                normalScale: new Vector2(-1,-1),
+                normalScale: new Vector2(-1, -1),
                 roughnessMap: loader.load('/resources/wood_table/roughness.jpg', (map) => {
                     map.wrapS = RepeatWrapping;
                     map.wrapT = RepeatWrapping;
-                    map.repeat.set(10*puzzleData.width, 10*puzzleData.height);
+                    map.repeat.set(10 * puzzleData.width, 10 * puzzleData.height);
                     map.needsUpdate = true;
                 }),
                 roughness: 1.2,
@@ -190,6 +195,15 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // roughness: 0.45,
             });
 
+            loader.load('/resources/envmap.jpg', (map) => {
+                const envmap = pmremGenerator.fromEquirectangular(map).texture;
+                scene.background = envmap;
+                scene.environment = envmap;
+
+                map.dispose();
+                pmremGenerator.dispose();
+            });
+
             const fakeShadowMat = new MeshBasicMaterial({
                 map: loader.load('/resources/shadowmap.png'),
                 transparent: true,
@@ -200,12 +214,12 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const plane = new PlaneGeometry(puzzleData.width * 3, puzzleData.height * 3);
             plane.center();
             plane.rotateX(-Math.PI / 2);
-            plane.translate(puzzleData.width*1.6 / 2, -(pieceMaxSize / 20), puzzleData.height*1.6 /  2);
+            plane.translate(puzzleData.width * 1.6 / 2, -(pieceMaxSize / 20), puzzleData.height * 1.6 / 2);
             const planeM = new Mesh(plane, planeMaterial);
             planeM.receiveShadow = true;
             scene.add(planeM);
 
-            const shadowGeo = new PlaneBufferGeometry(pieceMaxSize*3, pieceMaxSize*3);
+            const shadowGeo = new PlaneBufferGeometry(pieceMaxSize * 3, pieceMaxSize * 3);
 
             const pieceGeometries = [];
             const pieceMeshes = [];
@@ -236,14 +250,14 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 mesh.bufferOffset = bufferOffset;
                 bufferOffset += geometry.attributes.position.count;
 
-                mesh.position.set(-puzzleData.pieceSize[0]/2, 0, -puzzleData.pieceSize[1]/2);
+                mesh.position.set(-puzzleData.pieceSize[0] / 2, 0, -puzzleData.pieceSize[1] / 2);
 
                 base.add(mesh);
 
                 const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
                 shadowMesh.name = 'shadow';
                 shadowMesh.rotateX(-Math.PI / 2);
-                shadowMesh.position.set(pieceMaxSize/2 - puzzleData.pieceSize[0]/2, -0.0095, pieceMaxSize/2 - puzzleData.pieceSize[1]/2);
+                shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0095, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);
                 shadowMesh.visible = false;
 
                 base.add(shadowMesh);
@@ -276,7 +290,13 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // console.timeEnd('newmesh');
 
             const controls = new OrbitControls(camera, renderer.domElement);
+            window.controls = controls;
             // controls.enableRotate = false;
+            controls.maxPolarAngle = Math.PI / 2.1;
+            controls.maxDistance = 3;
+            controls.minDistance = 0.01;
+            controls.zoomSpeed = 2;
+            controls.screenSpacePanning = false;
             controls.enableKeys = true;
             controls.keyPanSpeed = 20;
             controls.keys = {
@@ -284,6 +304,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 UP: 87, // up arrow
                 RIGHT: 68, // right arrow
                 BOTTOM: 83 // down arrow
+            };
+            controls.mouseButtons = {
+                MIDDLE: MOUSE.ROTATE,
+                RIGHT: MOUSE.PAN,
+                // MIDDLE: THREE.MOUSE.DOLLY,
             };
             //controls.update() must be called after any manual changes to the camera's transform
             camera.position.set(0, 1, 0);
