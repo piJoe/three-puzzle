@@ -240,6 +240,25 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 ));
             }
 
+            const NEIGHBOUR_SIDES = {
+                LEFT: 0,
+                TOP: 1,
+                RIGHT: 2,
+                BOTTOM: 3,
+                getSideName: (i) => {
+                    switch (i) {
+                        case 0:
+                            return 'LEFT';
+                        case 1:
+                            return 'TOP';
+                        case 2:
+                            return 'RIGHT';
+                        case 3:
+                            return 'BOTTOM';
+                    }
+                    return 'UNKNOWN';
+                }
+            };
             const NEIGHBOUR_OFFSETS = {
                 0: new Vector3(-(puzzleData.pieceSize[0] / 2), 0, 0), // left
                 1: new Vector3(0, 0, -(puzzleData.pieceSize[1] / 2)), // top
@@ -493,20 +512,20 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         raycastPoint.position.copy(point).setY(pickedObject.position.y);
 
                         // debug neighbours
-                        connectLine.geometry.vertices = [];
-                        for (let i = 0; i < pickedObject.puzzleInfo.neighbours.length; i++) {
-                            const neighbourNo = pickedObject.puzzleInfo.neighbours[i];
-                            if (neighbourNo < 0) {
-                                connectLine.geometry.vertices.push(nullVec, nullVec);
-                            } else {
-                                const neighbour = pieceMeshes[neighbourNo];
-                                const selfOffset = NEIGHBOUR_OFFSETS[i];
-                                const neighbourOffset = (NEIGHBOUR_OFFSETS[(i + 2) % 4]);
-                                console.log(selfOffset, neighbourOffset);
-                                connectLine.geometry.vertices.push(pickedObject.position.clone().setY(0.003).add(selfOffset), neighbour.position.clone().setY(0.003).add(neighbourOffset));
-                            }
-                        }
-                        connectLine.geometry.verticesNeedUpdate = true;
+                        // connectLine.geometry.vertices = [];
+                        // for (let i = 0; i < pickedObject.puzzleInfo.neighbours.length; i++) {
+                        //     const neighbourNo = pickedObject.puzzleInfo.neighbours[i];
+                        //     if (neighbourNo < 0) {
+                        //         connectLine.geometry.vertices.push(nullVec, nullVec);
+                        //     } else {
+                        //         const neighbour = pieceMeshes[neighbourNo];
+                        //         const selfOffset = NEIGHBOUR_OFFSETS[i];
+                        //         const neighbourOffset = (NEIGHBOUR_OFFSETS[(i + 2) % 4]);
+                        //         // console.log(selfOffset, neighbourOffset);
+                        //         connectLine.geometry.vertices.push(pickedObject.position.clone().setY(0.003).add(selfOffset), neighbour.position.clone().setY(0.003).add(neighbourOffset));
+                        //     }
+                        // }
+                        // connectLine.geometry.verticesNeedUpdate = true;
                     }
                 }
 
@@ -518,6 +537,28 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     pickedObject.animDuration = 70;
                     //pickedObject.translateY(-0.01);
                     pickedObject.children[1].visible = false;
+
+                    for (let i = 0; i < pickedObject.puzzleInfo.neighbours.length; i++) {
+                        const neighbourNo = pickedObject.puzzleInfo.neighbours[i];
+                        if (neighbourNo < 0) {
+                            continue;
+                        }
+
+                        const neighbour = pieceMeshes[neighbourNo];
+                        const selfOffset = NEIGHBOUR_OFFSETS[i];
+                        const neighbourOffset = (NEIGHBOUR_OFFSETS[(i + 2) % 4]);
+
+                        const selfPos = pickedObject.targetPos.clone().add(selfOffset);
+                        const neighbourPos = neighbour.position.clone().add(neighbourOffset);
+                        const distance = selfPos.distanceTo(neighbourPos);
+
+                        if (distance < 0.0035) {
+                            console.log('*CLICK*', NEIGHBOUR_SIDES.getSideName(i), distance);
+                            const newPos = neighbour.position.clone().add(neighbourOffset).sub(selfOffset);
+                            pickedObject.targetPos.copy(newPos);
+                        }
+                    }
+
                     pickedObject = null;
 
                     connectLine.geometry.vertices = [nullVec, nullVec, nullVec, nullVec, nullVec, nullVec, nullVec, nullVec];
