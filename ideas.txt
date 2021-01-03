@@ -1,0 +1,5 @@
+pickup: 
+- check anything between table and picked object BB.
+- if there is something, add their height to offset
+- else use default offset
+- also: move shadow dynamically, always 0.001 above object below
