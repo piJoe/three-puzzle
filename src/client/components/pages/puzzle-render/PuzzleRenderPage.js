@@ -210,7 +210,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             });
             window.felt = planeMaterial;
 
-            const detailMap = loader.load('/resources/test_roughness.png', (map) => {
+            const detailMap = loader.load('/resources/test_roughness.jpg', (map) => {
                 map.wrapS = RepeatWrapping;
                 map.wrapT = RepeatWrapping;
                 map.repeat.set(4, 4);
