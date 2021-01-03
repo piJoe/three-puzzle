@@ -51,6 +51,33 @@ const PuzzleUVGenerator = (puzzleData, i) => {
 
 };
 
+function getPositionsFromBox(inx, iny, inx2, iny2) {
+    const positions = [];
+    for (let x = inx; x <= inx2; x++) {
+        for (let y = iny; y <= iny2; y++) {
+            positions.push({ x, y });
+        }
+    }
+    return positions;
+}
+function createSpawnPositions(x, y, x2, y2, length) {
+    const positions = [];
+    while (positions.length < length) {
+        positions.push(
+            ...getPositionsFromBox(x - 1, y - 1, x2 + 1, y - 1),
+            ...getPositionsFromBox(x - 1, y, x - 1, y2 + 1),
+            ...getPositionsFromBox(x, y2 + 1, x2, y2 + 1),
+            ...getPositionsFromBox(x2 + 1, y, x2 + 1, y2),
+        );
+
+        x -= 1;
+        y -= 1;
+        x2 += 1;
+        y2 += 1;
+    }
+    return positions;
+}
+
 export const PuzzleRenderPage = function PuzzleRenderPage() {
 
     return {
@@ -99,7 +126,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // const ambientLight = new AmbientLight(0xffffff * 0.2); // soft white light
             // scene.add(ambientLight);
 
-            const directionalLight = new DirectionalLight(0xffffff, 2);
+            const directionalLight = new DirectionalLight(0xffffff, 1.25);
             directionalLight.position.set(puzzleData.width, 2, 0);
             directionalLight.lookAt(puzzleData.width / 2, 0, puzzleData.height / 2);
             directionalLight.target.position.set(puzzleData.width / 2, 0, puzzleData.height / 2);
@@ -220,25 +247,24 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 depthFunc: NeverDepth,
             });
 
-            const plane = new PlaneGeometry(puzzleData.width * 3, puzzleData.height * 3);
+            const plane = new PlaneGeometry(puzzleData.width * 6, puzzleData.height * 6);
             plane.center();
             plane.rotateX(-Math.PI / 2);
-            plane.translate(puzzleData.width * 1.6 / 2, -(pieceMaxSize / 20), puzzleData.height * 1.6 / 2);
+            plane.translate(puzzleData.width * 2.2 / 3, -(pieceMaxSize / 20), puzzleData.height * 2.2 / 3);
             const planeM = new Mesh(plane, planeMaterial);
             planeM.receiveShadow = true;
             scene.add(planeM);
 
             const shadowGeo = new PlaneBufferGeometry(pieceMaxSize * 3, pieceMaxSize * 3);
 
-            const validPositions = [];
-            for (let i = 0; i < puzzleData.pieces.length; i++) {
-                const piece = puzzleData.pieces[i];
-                validPositions.push(new Vector3(
-                    puzzleData.pieceSize[0] * piece.x * 1.6,
+            const lastPiece = puzzleData.pieces[puzzleData.pieces.length - 1];
+            const validPositions = createSpawnPositions(0, 0, Math.ceil(lastPiece.x/1.6), Math.ceil(lastPiece.y/1.6), puzzleData.pieces.length).map(p => {
+                return new Vector3(
+                    puzzleData.pieceSize[0] * p.x * 1.6,
                     0,
-                    puzzleData.pieceSize[1] * piece.y * 1.6
-                ));
-            }
+                    puzzleData.pieceSize[1] * p.y * 1.6
+                );
+            });
 
             const NEIGHBOUR_SIDES = {
                 LEFT: 0,
@@ -317,7 +343,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 const pos = validPositions.splice(Math.floor(Math.random() * validPositions.length), 1)[0];
                 // base.position.set(pos.x, pos.y, pos.z);
                 base.position.copy(pos);
-                console.log(base.position);
+                // console.log(base.position);
 
                 scene.add(base);
                 pieceMeshes.push(base);
