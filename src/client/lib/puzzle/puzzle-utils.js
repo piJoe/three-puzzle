@@ -2,6 +2,7 @@ import { SVGPathUtils } from 'svg-path-utils';
 import { svgPathBbox } from 'svg-path-bbox';
 import svgpath from 'svgpath';
 import { flattenSVG } from 'flatten-svg';
+import { Vector3 } from 'three';
 const utils = new SVGPathUtils();
 
 let pieces = [];
@@ -173,14 +174,6 @@ function p9l() {
 }
 function p9w() {
     return w(0.0);
-}
-
-function parse_input() {
-    seed = parseInt($('seed').value);
-    t = parseFloat($('tabsize').value) / 200.0;
-    j = parseFloat($('jitter').value) / 100.0;
-    xn = parseInt($('xn').value);
-    yn = parseInt($('yn').value);
 }
 
 function gen_dh() {
@@ -408,6 +401,10 @@ function calculatePieceCount(fullWidth, fullHeight, targetCount) {
     };
 }
 
+/**
+ * generates puzzle data (svg paths, pieces, size information, ...)
+ * @param {*} config
+ */
 export const generatePuzzleData = function generatePuzzleData(config) {
     width = config.width;
     height = config.height;
@@ -488,17 +485,17 @@ export const generatePuzzleData = function generatePuzzleData(config) {
     pieces = pieces.map((p, i) => {
         const neighbours = [-1, -1, -1, -1]; //left top right bottom
         if (p.x > 0) {
-            neighbours[0] = i - 1;
+            neighbours[NEIGHBOUR_SIDES.LEFT] = i - 1;
         }
         if (p.x < xn - 1) {
-            neighbours[2] = i + 1;
+            neighbours[NEIGHBOUR_SIDES.RIGHT] = i + 1;
         }
 
         if (p.y > 0) {
-            neighbours[1] = i - 1 * xn;
+            neighbours[NEIGHBOUR_SIDES.TOP] = i - 1 * xn;
         }
         if (p.y < yn - 1) {
-            neighbours[3] = i + 1 * xn;
+            neighbours[NEIGHBOUR_SIDES.BOTTOM] = i + 1 * xn;
         }
         p.neighbours = neighbours;
         return p;
@@ -597,7 +594,7 @@ export const generatePuzzleData = function generatePuzzleData(config) {
 };
 
 /**
- *
+ * generates puzzle paths from puzzle data
  * @param {*} puzzle - puzzle data loaded from json
  * @param {number} quality - default is 75, below 50 results in garbage, above 100 is probably not useful
  * @param {HTMLElement} workingDOM - defaults to document.body, is needed to create the temporary svg element for path calculations
@@ -642,3 +639,37 @@ export const generatePuzzlePaths = function generatePuzzlePaths(
 
     return cleanPaths;
 };
+
+export const NEIGHBOUR_SIDES = {
+    LEFT: 0,
+    TOP: 1,
+    RIGHT: 2,
+    BOTTOM: 3,
+    getSideName: (i) => {
+        switch (i) {
+            case 0:
+                return 'LEFT';
+            case 1:
+                return 'TOP';
+            case 2:
+                return 'RIGHT';
+            case 3:
+                return 'BOTTOM';
+        }
+        return 'UNKNOWN';
+    },
+};
+
+/**
+ * creates offsets for the neighbours, based on piece size
+ * @param {number} x - piece size width
+ * @param {number} y - piece size height
+ */
+export function createNeighbourOffsets(x, y) {
+    return {
+        0: new Vector3(-(x / 2), 0, 0), // left
+        1: new Vector3(0, 0, -(y / 2)), // top
+        2: new Vector3(x / 2, 0, 0), // right
+        3: new Vector3(0, 0, y / 2), // bottom
+    };
+}

@@ -45,12 +45,16 @@ import {
     LineBasicMaterial,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { generatePuzzlePaths } from 'client/lib/puzzle/puzzle-utils';
+import {
+    createNeighbourOffsets,
+    generatePuzzlePaths,
+    NEIGHBOUR_SIDES,
+} from 'client/lib/puzzle/puzzle-utils';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
-
-function createShape(path) {
-    return new Shape(path.map((p) => new Vector2(p[0], p[1])));
-}
+import {
+    createShapeFromPath,
+    createSpawnPositionsOutsideArea,
+} from 'client/lib/engine/engine-utils';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     // console.log(puzzleData, i);
@@ -90,33 +94,6 @@ const PuzzleUVGenerator = (puzzleData, i) => {
         },
     };
 };
-
-function getPositionsFromBox(inx, iny, inx2, iny2) {
-    const positions = [];
-    for (let x = inx; x <= inx2; x++) {
-        for (let y = iny; y <= iny2; y++) {
-            positions.push({ x, y });
-        }
-    }
-    return positions;
-}
-function createSpawnPositions(x, y, x2, y2, length) {
-    const positions = [];
-    while (positions.length < length) {
-        positions.push(
-            ...getPositionsFromBox(x - 1, y - 1, x2 + 1, y - 1),
-            ...getPositionsFromBox(x - 1, y, x - 1, y2 + 1),
-            ...getPositionsFromBox(x, y2 + 1, x2, y2 + 1),
-            ...getPositionsFromBox(x2 + 1, y, x2 + 1, y2 + 1)
-        );
-
-        x -= 1;
-        y -= 1;
-        x2 += 1;
-        y2 += 1;
-    }
-    return positions.slice(0, length);
-}
 
 export const PuzzleRenderPage = function PuzzleRenderPage() {
     return {
@@ -337,7 +314,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             );
 
             const lastPiece = puzzleData.pieces[puzzleData.pieces.length - 1];
-            const validPositions = createSpawnPositions(
+            const validPositions = createSpawnPositionsOutsideArea(
                 0,
                 0,
                 lastPiece.x,
@@ -351,38 +328,16 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 );
             });
 
-            const NEIGHBOUR_SIDES = {
-                LEFT: 0,
-                TOP: 1,
-                RIGHT: 2,
-                BOTTOM: 3,
-                getSideName: (i) => {
-                    switch (i) {
-                        case 0:
-                            return 'LEFT';
-                        case 1:
-                            return 'TOP';
-                        case 2:
-                            return 'RIGHT';
-                        case 3:
-                            return 'BOTTOM';
-                    }
-                    return 'UNKNOWN';
-                },
-            };
-            const NEIGHBOUR_OFFSETS = {
-                0: new Vector3(-(puzzleData.pieceSize[0] / 2), 0, 0), // left
-                1: new Vector3(0, 0, -(puzzleData.pieceSize[1] / 2)), // top
-                2: new Vector3(puzzleData.pieceSize[0] / 2, 0, 0), // right
-                3: new Vector3(0, 0, puzzleData.pieceSize[1] / 2), // bottom
-            };
-
+            const neighbourOffsets = createNeighbourOffsets(
+                puzzleData.pieceSize[0],
+                puzzleData.pieceSize[1]
+            );
             const pieceGeometries = [];
             const pieceMeshes = [];
             let bufferOffset = 0;
             for (let i = 0; i < puzzlePaths.length; i++) {
                 const puzzlePiece = puzzleData.pieces[i];
-                const shape = createShape(puzzlePaths[i]);
+                const shape = createShapeFromPath(puzzlePaths[i]);
 
                 extrudeSettings.UVGenerator = PuzzleUVGenerator(puzzleData, i);
                 const geometry = new ExtrudeBufferGeometry(
@@ -713,8 +668,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         }
 
                         const neighbour = pieceMeshes[neighbourNo];
-                        const selfOffset = NEIGHBOUR_OFFSETS[i];
-                        const neighbourOffset = NEIGHBOUR_OFFSETS[(i + 2) % 4];
+                        const selfOffset = neighbourOffsets[i];
+                        const neighbourOffset = neighbourOffsets[(i + 2) % 4];
 
                         const selfPos = pickedObject.targetPos
                             .clone()
