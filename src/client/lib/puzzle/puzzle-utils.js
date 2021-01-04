@@ -1,27 +1,88 @@
-import { SVGPathUtils } from "svg-path-utils";
-import { svgPathBbox } from "svg-path-bbox";
-import svgpath from "svgpath";
-import { flattenSVG } from "flatten-svg";
+import { SVGPathUtils } from 'svg-path-utils';
+import { svgPathBbox } from 'svg-path-bbox';
+import svgpath from 'svgpath';
+import { flattenSVG } from 'flatten-svg';
 const utils = new SVGPathUtils();
 
 let pieces = [];
 var seed = 1;
 // function random() { var x = Math.sin(seed) * 10000; seed += 1; return x - Math.floor(x); }
-function random() { return Math.random(); };
-function uniform(min, max) { var r = random(); return min + r * (max - min); }
-function rbool() { return random() > 0.5; }
+function random() {
+    return Math.random();
+}
+function uniform(min, max) {
+    var r = random();
+    return min + r * (max - min);
+}
+function rbool() {
+    return random() > 0.5;
+}
 
-var a, b, c, c2, d, e, t, t2, j, flip, xi, yi, xn, yn, vertical, width, height, tSize, tVar, mid, mid2, midVar, nipW, nipVar;
-function first() { e = uniform(-j, j); next(); }
-function next() { var flipold = flip; flip = rbool(); a = (flip == flipold ? -e : e); b = uniform(-j, j); c = uniform(-j, j); c2 = uniform(-j, j); d = uniform(-j, j); e = uniform(-j, j); t = uniform(tSize - tVar, tSize + tVar); t2 = uniform(tSize - tVar, tSize + tVar); mid = uniform(0.5 - midVar, 0.5 + midVar); mid2 = uniform(0.5 - midVar, 0.5 + midVar); nipW = uniform(-nipVar, nipVar); }
+var a,
+    b,
+    c,
+    c2,
+    d,
+    e,
+    t,
+    t2,
+    j,
+    flip,
+    xi,
+    yi,
+    xn,
+    yn,
+    vertical,
+    width,
+    height,
+    tSize,
+    tVar,
+    mid,
+    mid2,
+    midVar,
+    nipW,
+    nipVar;
+function first() {
+    e = uniform(-j, j);
+    next();
+}
+function next() {
+    var flipold = flip;
+    flip = rbool();
+    a = flip == flipold ? -e : e;
+    b = uniform(-j, j);
+    c = uniform(-j, j);
+    c2 = uniform(-j, j);
+    d = uniform(-j, j);
+    e = uniform(-j, j);
+    t = uniform(tSize - tVar, tSize + tVar);
+    t2 = uniform(tSize - tVar, tSize + tVar);
+    mid = uniform(0.5 - midVar, 0.5 + midVar);
+    mid2 = uniform(0.5 - midVar, 0.5 + midVar);
+    nipW = uniform(-nipVar, nipVar);
+}
 // function next() { var flipold = flip; flip = rbool(); a = (flip == flipold ? -e : e); b = uniform(-j, j); c = uniform(-j, j); d = uniform(-j, j); e = uniform(-j, j); }
-function sl() { return vertical ? height / yn : width / xn; }
-function sw() { return vertical ? width / xn : height / yn; }
-function ol() { return sl() * (vertical ? yi : xi); }
-function ow() { return sw() * (vertical ? xi : yi); }
+function sl() {
+    return vertical ? height / yn : width / xn;
+}
+function sw() {
+    return vertical ? width / xn : height / yn;
+}
+function ol() {
+    return sl() * (vertical ? yi : xi);
+}
+function ow() {
+    return sw() * (vertical ? xi : yi);
+}
 // function l(v) { var ret = ol() + sl() * v; return Math.round(ret * 100) / 100; }
-function l(v) { var ret = ol() + sl() * v; return (Math.round(ret * 100) / 100); }
-function w(v) { var ret = ow() + sw() * v * (flip ? -1.0 : 1.0); return (Math.round(ret * 100) / 100); }
+function l(v) {
+    var ret = ol() + sl() * v;
+    return Math.round(ret * 100) / 100;
+}
+function w(v) {
+    var ret = ow() + sw() * v * (flip ? -1.0 : 1.0);
+    return Math.round(ret * 100) / 100;
+}
 
 // function p0l() { return l(0.0); }
 // function p0w() { return w(0.0); }
@@ -44,61 +105,100 @@ function w(v) { var ret = ow() + sw() * v * (flip ? -1.0 : 1.0); return (Math.ro
 // function p9l() { return l(1.0); }
 // function p9w() { return w(0.0); }
 
+function p0l() {
+    return l(0.0);
+}
+function p0w() {
+    return w(0.0);
+}
 
-function p0l() { return l(0.0); }
-function p0w() { return w(0.0); }
+function p1l() {
+    return l(0.2 - Math.abs(mid / 10));
+}
+function p1w() {
+    return w(a);
+}
 
-function p1l() { return l(0.2 - Math.abs(mid / 10)); }
-function p1w() { return w(a); }
+function p2l() {
+    return l(mid + b + d);
+}
+function p2w() {
+    return w(-t + c);
+}
 
-function p2l() { return l(mid + b + d); }
-function p2w() { return w(-t + c); }
+function p3l() {
+    return l(mid - t * 0.6 + b);
+}
+function p3w() {
+    return w(t * 0.6 + c);
+}
 
-function p3l() { return l(mid - (t * 0.6) + b); }
-function p3w() { return w((t * 0.6) + c); }
+function p4l() {
+    return l(mid - (2.6 + nipW) * t + b - d);
+}
+function p4w() {
+    return w((3.0 + nipW) * t + c);
+}
 
-function p4l() { return l(mid - (2.6 + nipW) * t + b - d); }
-function p4w() { return w((3.0 + nipW) * t + c); }
+function p5l() {
+    return l(mid2 + (2.6 + nipW) * t2 + b - d);
+}
+function p5w() {
+    return w((3.0 + nipW) * t2 + c2);
+}
 
-function p5l() { return l(mid2 + (2.6 + nipW) * t2 + b - d); }
-function p5w() { return w((3.0 + nipW) * t2 + c2); }
+function p6l() {
+    return l(mid2 + t2 * 0.6 + b);
+}
+function p6w() {
+    return w(t2 * 0.6 + c2);
+}
 
-function p6l() { return l(mid2 + (t2 * 0.6) + b); }
-function p6w() { return w((t2 * 0.6) + c2); }
+function p7l() {
+    return l(mid + b + d);
+}
+function p7w() {
+    return w(-t2 + c2);
+}
 
-function p7l() { return l(mid + b + d); }
-function p7w() { return w(-t2 + c2); }
+function p8l() {
+    return l(0.8 + Math.abs(mid2 / 10));
+}
+function p8w() {
+    return w(e);
+}
 
-function p8l() { return l(0.8 + Math.abs(mid2 / 10)); }
-function p8w() { return w(e); }
-
-function p9l() { return l(1.0); }
-function p9w() { return w(0.0); }
+function p9l() {
+    return l(1.0);
+}
+function p9w() {
+    return w(0.0);
+}
 
 function parse_input() {
-    seed = parseInt($("seed").value);
-    t = parseFloat($("tabsize").value) / 200.0;
-    j = parseFloat($("jitter").value) / 100.0;
-    xn = parseInt($("xn").value);
-    yn = parseInt($("yn").value);
+    seed = parseInt($('seed').value);
+    t = parseFloat($('tabsize').value) / 200.0;
+    j = parseFloat($('jitter').value) / 100.0;
+    xn = parseInt($('xn').value);
+    yn = parseInt($('yn').value);
 }
 
 function gen_dh() {
     var cols = [];
-    var str = "";
+    var str = '';
     vertical = 0;
 
     xi = 0;
     first();
     for (; xi < xn; ++xi) {
-        str += "M " + p0l() + " " + 0 + " ";
-        str += "L " + p9l() + " " + 0 + " ";
+        str += 'M ' + p0l() + ' ' + 0 + ' ';
+        str += 'L ' + p9l() + ' ' + 0 + ' ';
         cols.push({
             left: [p0l(), 0],
             right: [p9l(), 0],
-            path: str
+            path: str,
         });
-        str = "";
+        str = '';
         next();
     }
 
@@ -107,35 +207,73 @@ function gen_dh() {
         first();
 
         for (; xi < xn; ++xi) {
-            str += "M " + p0l() + " " + p0w() + " ";
+            str += 'M ' + p0l() + ' ' + p0w() + ' ';
 
-            str += "C " + p1l() + " " + p1w() + " " + p2l() + " " + p2w() + " " + p3l() + " " + p3w() + " ";
-            str += "C " + p4l() + " " + p4w() + " " + p5l() + " " + p5w() + " " + p6l() + " " + p6w() + " ";
-            str += "C " + p7l() + " " + p7w() + " " + p8l() + " " + p8w() + " " + p9l() + " " + p9w() + " ";
+            str +=
+                'C ' +
+                p1l() +
+                ' ' +
+                p1w() +
+                ' ' +
+                p2l() +
+                ' ' +
+                p2w() +
+                ' ' +
+                p3l() +
+                ' ' +
+                p3w() +
+                ' ';
+            str +=
+                'C ' +
+                p4l() +
+                ' ' +
+                p4w() +
+                ' ' +
+                p5l() +
+                ' ' +
+                p5w() +
+                ' ' +
+                p6l() +
+                ' ' +
+                p6w() +
+                ' ';
+            str +=
+                'C ' +
+                p7l() +
+                ' ' +
+                p7w() +
+                ' ' +
+                p8l() +
+                ' ' +
+                p8w() +
+                ' ' +
+                p9l() +
+                ' ' +
+                p9w() +
+                ' ';
 
             cols.push({
                 left: [p0l(), p0w()],
                 right: [p9l(), p9w()],
-                path: str
+                path: str,
             });
             next();
-            str = "";
+            str = '';
         }
-
     }
 
     xi = 0;
     first();
     for (; xi < xn; ++xi) {
-        str += "M " + p0l() + " " + p0w() + " ";
-        str += "L " + p9l() + " " + p9w() + " ";
+        str += 'M ' + p0l() + ' ' + p0w() + ' ';
+        str += 'L ' + p9l() + ' ' + p9w() + ' ';
         cols.push({
             left: [p0l(), p0w()],
             right: [p9l(), p9w()],
-            path: str
+            path: str,
         });
         next();
-        str = "";
+        str = '';
     }
 
     return cols;
@@ -143,20 +281,20 @@ function gen_dh() {
 
 function gen_dv() {
     var rows = [];
-    var str = "";
+    var str = '';
     vertical = 1;
 
     yi = 0;
     first();
     for (; yi < yn; ++yi) {
-        str += "M " + 0 + " " + p0l() + " ";
-        str += "L " + 0 + " " + p9l() + " ";
+        str += 'M ' + 0 + ' ' + p0l() + ' ';
+        str += 'L ' + 0 + ' ' + p9l() + ' ';
         rows.push({
             top: [0, p0l()],
             bottom: [0, p9l()],
-            path: str
+            path: str,
         });
-        str = "";
+        str = '';
         next();
     }
 
@@ -165,34 +303,72 @@ function gen_dv() {
         first();
 
         for (; yi < yn; ++yi) {
-            str += "M " + p0w() + " " + p0l() + " ";
-            str += "C " + p1w() + " " + p1l() + " " + p2w() + " " + p2l() + " " + p3w() + " " + p3l() + " ";
-            str += "C " + p4w() + " " + p4l() + " " + p5w() + " " + p5l() + " " + p6w() + " " + p6l() + " ";
-            str += "C " + p7w() + " " + p7l() + " " + p8w() + " " + p8l() + " " + p9w() + " " + p9l() + " ";
-
+            str += 'M ' + p0w() + ' ' + p0l() + ' ';
+            str +=
+                'C ' +
+                p1w() +
+                ' ' +
+                p1l() +
+                ' ' +
+                p2w() +
+                ' ' +
+                p2l() +
+                ' ' +
+                p3w() +
+                ' ' +
+                p3l() +
+                ' ';
+            str +=
+                'C ' +
+                p4w() +
+                ' ' +
+                p4l() +
+                ' ' +
+                p5w() +
+                ' ' +
+                p5l() +
+                ' ' +
+                p6w() +
+                ' ' +
+                p6l() +
+                ' ';
+            str +=
+                'C ' +
+                p7w() +
+                ' ' +
+                p7l() +
+                ' ' +
+                p8w() +
+                ' ' +
+                p8l() +
+                ' ' +
+                p9w() +
+                ' ' +
+                p9l() +
+                ' ';
 
             rows.push({
                 top: [p0w(), p0l()],
                 bottom: [p9w(), p9l()],
-                path: str
+                path: str,
             });
             next();
-            str = "";
+            str = '';
         }
     }
 
     yi = 0;
     first();
     for (; yi < yn; ++yi) {
-        str += "M " + p0w() + " " + p0l() + " ";
-        str += "L " + p9w() + " " + p9l() + " ";
+        str += 'M ' + p0w() + ' ' + p0l() + ' ';
+        str += 'L ' + p9w() + ' ' + p9l() + ' ';
         rows.push({
             top: [p0w(), p0l()],
             bottom: [p9w(), p9l()],
-            path: str
+            path: str,
         });
         next();
-        str = "";
+        str = '';
     }
 
     return rows;
@@ -210,7 +386,6 @@ function removeM(path) {
 }
 
 function calculatePieceCount(fullWidth, fullHeight, targetCount) {
-
     const ratio_w = fullWidth / fullHeight;
     const ratio_h = fullHeight / fullWidth;
 
@@ -221,8 +396,7 @@ function calculatePieceCount(fullWidth, fullHeight, targetCount) {
     while (pieceCountH * pieceCountW < targetCount) {
         if (pieceCountH < pieceCountW) {
             pieceCountW++;
-        }
-        else {
+        } else {
             pieceCountH++;
         }
     }
@@ -239,7 +413,7 @@ export const generatePuzzleData = function generatePuzzleData(config) {
     height = config.height;
 
     tSize = (config.tabSize || 20) / 200.0;
-    tVar = ((config.tabVar || 0) / 200.0);
+    tVar = (config.tabVar || 0) / 200.0;
     // t = (config.tabSize || 20) / 200.0;
 
     midVar = config.midVar || 0.0;
@@ -266,10 +440,16 @@ export const generatePuzzleData = function generatePuzzleData(config) {
             const r2 = rawRows[x + y * yn + yn].path;
 
             const path = svgpath(
-                (utils.inversePath(c) + " " +
-                    removeM(utils.inversePath(r)) + " " +
-                    removeM(c2) + " " +
-                    removeM(r2)).trim() + " Z")
+                (
+                    utils.inversePath(c) +
+                    ' ' +
+                    removeM(utils.inversePath(r)) +
+                    ' ' +
+                    removeM(c2) +
+                    ' ' +
+                    removeM(r2)
+                ).trim() + ' Z'
+            )
                 .translate(-(y * pW), -(x * pH))
                 .scale(1 / pW, 1 / pH)
                 .rel()
@@ -290,9 +470,14 @@ export const generatePuzzleData = function generatePuzzleData(config) {
             pieces.push(piece);
 
             let bBox = svgPathBbox(piece.path);
-            bBox = bBox.map(n => roundNumber(n));
+            bBox = bBox.map((n) => roundNumber(n));
 
-            piece.bBox = { x: bBox[0], y: bBox[1], width: roundNumber(bBox[2] - bBox[0]), height: roundNumber(bBox[3] - bBox[1]) };
+            piece.bBox = {
+                x: bBox[0],
+                y: bBox[1],
+                width: roundNumber(bBox[2] - bBox[0]),
+                height: roundNumber(bBox[3] - bBox[1]),
+            };
             //@todo: fix bBox and offset (sizing is way off because of scaling)
             piece.offset = {
                 x: roundNumber(piece.bBox.x - piece.x * pW),
@@ -402,30 +587,34 @@ export const generatePuzzleData = function generatePuzzleData(config) {
 
         // puzzleBytes: puzzleParser.encode({
         //     width,
-        //     height, 
+        //     height,
         //     pieceSizeX: pW,
         //     pieceSizeY: pH,
         //     piecesCount: pieces.length,
         //     pieces,
         // })
     };
-}
+};
 
 /**
- * 
+ *
  * @param {*} puzzle - puzzle data loaded from json
  * @param {number} quality - default is 75, below 50 results in garbage, above 100 is probably not useful
  * @param {HTMLElement} workingDOM - defaults to document.body, is needed to create the temporary svg element for path calculations
  */
-export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, quality = 75, workingDOM = document.body) {
+export const generatePuzzlePaths = function generatePuzzlePaths(
+    puzzle,
+    quality = 75,
+    workingDOM = document.body
+) {
     const { pieces, pieceSize } = puzzle;
 
     const pieceMaxSize = Math.min(pieceSize[0], pieceSize[1]);
     // console.log(realPieceSize);
 
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
-    const g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-    g.setAttribute('transform', `scale(${(pieceSize[0])},${(pieceSize[1])})`);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('transform', `scale(${pieceSize[0]},${pieceSize[1]})`);
     g.setAttribute('style', 'visibility: hidden; height: 0; width: 0;');
     svg.append(g);
     workingDOM.append(svg);
@@ -433,7 +622,10 @@ export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, quality 
     for (let i = 0; i < pieces.length; i++) {
         const piece = pieces[i];
 
-        const p = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+        const p = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'path'
+        );
 
         p.setAttribute('d', piece.path);
         p.dataset.no = pieces.length - 1;
@@ -444,7 +636,7 @@ export const generatePuzzlePaths = function generatePuzzlePaths(puzzle, quality 
     const flattenedPaths = flattenSVG(svg, {
         maxError: pieceMaxSize / quality,
     });
-    const cleanPaths = flattenedPaths.map(p => p.points);
+    const cleanPaths = flattenedPaths.map((p) => p.points);
 
     svg.remove();
 

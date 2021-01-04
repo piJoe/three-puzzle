@@ -1,6 +1,6 @@
-let state = window.state = {
+let state = (window.state = {
     puzzleData: {},
-};
+});
 
 // const saveState = () => {
 //     localStorage.setItem('puzzlestate', JSON.stringify(state));
