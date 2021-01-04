@@ -1,1 +1,0 @@
-{"version":3,"file":"server.js","sources":["../../src/server/index.js"],"sourcesContent":["console.log('Hello World from server!');"],"names":[],"mappings":";;AAAA,OAAO,CAAC,GAAG,CAAC,0BAA0B,CAAC;;"}
