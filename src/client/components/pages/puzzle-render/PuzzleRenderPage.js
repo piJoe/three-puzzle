@@ -126,7 +126,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             const scene = new Scene();
             const camera = new PerspectiveCamera(
-                75,
+                50,
                 window.innerWidth / window.innerHeight,
                 0.001,
                 500
