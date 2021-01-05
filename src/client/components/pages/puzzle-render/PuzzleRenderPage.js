@@ -43,6 +43,8 @@ import {
     AlwaysDepth,
     Line,
     LineBasicMaterial,
+    AudioListener,
+    Audio, AudioLoader,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
@@ -140,6 +142,17 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // camera.layers.enable(0);
             // camera.layers.enable(1);
             // const camera = new OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0.01, 1000);
+
+            const listener = new AudioListener();
+            camera.add(listener);
+            const clickSound = new Audio(listener);
+            // load a sound and set it as the Audio object's buffer
+            const audioLoader = new AudioLoader();
+            audioLoader.load( 'resources/snap.ogg', function( buffer ) {
+                clickSound.setBuffer( buffer );
+                // sound.setLoop( true );
+                clickSound.setVolume( 0.5 );
+            });
 
             // const geometry = new BoxGeometry();
             // const material = new MeshBasicMaterial( { color: 0x00ff00 } );
@@ -681,6 +694,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         //@todo: iterate through all neighbours distances, closest distance wins snapping
 
                         if (distance < selfOffset.length() / 2) {
+                            clickSound.play();
                             console.log(
                                 '*CLICK*',
                                 NEIGHBOUR_SIDES.getSideName(i),
@@ -691,6 +705,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                                 .add(neighbourOffset)
                                 .sub(selfOffset);
                             pickedObject.targetPos.copy(newPos);
+                            break;
                         }
                     }
 
