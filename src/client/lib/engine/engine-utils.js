@@ -17,6 +17,7 @@ function getPositionsFromOutline(inx, iny, inx2, iny2) {
     }
     return positions;
 }
+
 /**
  * generates spawn positions of size 1,1 based on the outside of the defined area
  * @param {number} x - x pos of inside area
@@ -32,7 +33,7 @@ export function createSpawnPositionsOutsideArea(x, y, x2, y2, length) {
             ...getPositionsFromOutline(x - 1, y - 1, x2 + 1, y - 1),
             ...getPositionsFromOutline(x - 1, y, x - 1, y2 + 1),
             ...getPositionsFromOutline(x, y2 + 1, x2, y2 + 1),
-            ...getPositionsFromOutline(x2 + 1, y, x2 + 1, y2 + 1)
+            ...getPositionsFromOutline(x2 + 1, y, x2 + 1, y2 + 1),
         );
 
         x -= 1;

@@ -55,6 +55,7 @@ import {
     createShapeFromPath,
     createSpawnPositionsOutsideArea,
 } from 'client/lib/engine/engine-utils';
+import { SimpleExtrudeBufferGeometry } from '../../../lib/engine/SimpleExtrudeBufferGeometry';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     // console.log(puzzleData, i);
@@ -205,14 +206,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const extrudeSettings = {
                 steps: 1,
                 depth: pieceMaxSize / 20,
-
-                bevelEnabled: true,
-                bevelThickness: pieceMaxSize / 300,
-                bevelSize: pieceMaxSize / 300,
-                // bevelThickness: 0,
-                // bevelSize: 0,
-                bevelOffset: -(pieceMaxSize / 200),
-                bevelSegments: 1,
+                offset: -(pieceMaxSize / 400),
             };
 
             const loader = new TextureLoader();
@@ -340,7 +334,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 const shape = createShapeFromPath(puzzlePaths[i]);
 
                 extrudeSettings.UVGenerator = PuzzleUVGenerator(puzzleData, i);
-                const geometry = new ExtrudeBufferGeometry(
+                const geometry = new SimpleExtrudeBufferGeometry(
                     shape,
                     extrudeSettings
                 );
@@ -679,7 +673,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             .add(neighbourOffset);
                         const distance = selfPos.distanceTo(neighbourPos);
 
-                        if (distance < 0.0035) {
+                        if (distance < selfOffset.length()/2) {
                             console.log(
                                 '*CLICK*',
                                 NEIGHBOUR_SIDES.getSideName(i),
