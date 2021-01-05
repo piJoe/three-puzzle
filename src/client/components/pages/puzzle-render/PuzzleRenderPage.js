@@ -672,6 +672,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             .clone()
                             .add(neighbourOffset);
                         const distance = selfPos.distanceTo(neighbourPos);
+                        //@todo: iterate through all neighbours distances, closest distance wins snapping
 
                         if (distance < selfOffset.length()/2) {
                             console.log(
