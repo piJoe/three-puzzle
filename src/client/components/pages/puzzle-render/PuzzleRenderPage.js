@@ -148,10 +148,10 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const clickSound = new Audio(listener);
             // load a sound and set it as the Audio object's buffer
             const audioLoader = new AudioLoader();
-            audioLoader.load( 'resources/snap.ogg', function( buffer ) {
-                clickSound.setBuffer( buffer );
+            audioLoader.load('resources/snap.ogg', function(buffer) {
+                clickSound.setBuffer(buffer);
                 // sound.setLoop( true );
-                clickSound.setVolume( 0.5 );
+                clickSound.setVolume(0.5);
             });
 
             // const geometry = new BoxGeometry();
