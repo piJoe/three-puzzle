@@ -44,7 +44,8 @@ import {
     Line,
     LineBasicMaterial,
     AudioListener,
-    Audio, AudioLoader,
+    Audio,
+    AudioLoader,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
