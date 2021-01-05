@@ -67,7 +67,7 @@ const PuzzleUVGenerator = (puzzleData, i) => {
     const y = pieceSize[1] * piece.y;
 
     return {
-        generateTopUV: function (geometry, vertices, indexA, indexB, indexC) {
+        generateTopUV: function(geometry, vertices, indexA, indexB, indexC) {
             const a_x = (vertices[indexA * 3] + x) / width;
             const a_y = (height - (vertices[indexA * 3 + 1] + y)) / height;
             const b_x = (vertices[indexB * 3] + x) / width;
@@ -82,13 +82,13 @@ const PuzzleUVGenerator = (puzzleData, i) => {
             ];
         },
 
-        generateSideWallUV: function (
+        generateSideWallUV: function(
             geometry,
             vertices,
             indexA,
             indexB,
             indexC,
-            indexD
+            indexD,
         ) {
             const nullVec = new Vector2(0, 1);
             return [nullVec, nullVec, nullVec, nullVec];
@@ -110,18 +110,22 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             raycaster.layers.set(1);
 
             const mouse = new Vector2();
+
             function onMouseMove(event) {
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             }
+
             window.addEventListener('pointermove', onMouseMove);
 
             let pickupDown = false;
             let pickedObject = null;
+
             function key(k, isDown) {
                 // if (k.toLowerCase() === 'f') pickupDown = isDown;
                 if (k === 0) pickupDown = isDown;
             }
+
             window.addEventListener('pointerdown', (e) => key(e.button, true));
             window.addEventListener('pointerup', (e) => key(e.button, false));
 
@@ -130,7 +134,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 50,
                 window.innerWidth / window.innerHeight,
                 0.001,
-                500
+                500,
             );
             camera.layers.enableAll();
             // camera.layers.enable(0);
@@ -153,12 +157,12 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             directionalLight.lookAt(
                 puzzleData.width / 2,
                 0,
-                puzzleData.height / 2
+                puzzleData.height / 2,
             );
             directionalLight.target.position.set(
                 puzzleData.width / 2,
                 0,
-                puzzleData.height / 2
+                puzzleData.height / 2,
             );
             window.light = directionalLight;
 
@@ -200,7 +204,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             const pieceMaxSize = Math.min(
                 puzzleData.pieceSize[0],
-                puzzleData.pieceSize[1]
+                puzzleData.pieceSize[1],
             );
 
             const extrudeSettings = {
@@ -217,7 +221,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     map.wrapT = RepeatWrapping;
                     map.repeat.set(
                         20 * puzzleData.width,
-                        20 * puzzleData.height
+                        20 * puzzleData.height,
                     );
                     map.needsUpdate = true;
                 }),
@@ -226,7 +230,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     map.wrapT = RepeatWrapping;
                     map.repeat.set(
                         20 * puzzleData.width,
-                        20 * puzzleData.height
+                        20 * puzzleData.height,
                     );
                     map.needsUpdate = true;
                 }),
@@ -238,10 +242,10 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         map.wrapT = RepeatWrapping;
                         map.repeat.set(
                             20 * puzzleData.width,
-                            20 * puzzleData.height
+                            20 * puzzleData.height,
                         );
                         map.needsUpdate = true;
-                    }
+                    },
                 ),
                 color: 0x4d4d4d,
             });
@@ -254,7 +258,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     map.wrapT = RepeatWrapping;
                     map.repeat.set(4, 4);
                     map.needsUpdate = true;
-                }
+                },
             );
             const material = new MeshStandardMaterial({
                 map: loader.load(puzzleData.puzzleImage),
@@ -290,14 +294,14 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             const plane = new PlaneGeometry(
                 puzzleData.width * 6,
-                puzzleData.height * 6
+                puzzleData.height * 6,
             );
             plane.center();
             plane.rotateX(-Math.PI / 2);
             plane.translate(
                 (puzzleData.width * 2.2) / 3,
                 -(pieceMaxSize / 20),
-                (puzzleData.height * 2.2) / 3
+                (puzzleData.height * 2.2) / 3,
             );
             const planeM = new Mesh(plane, planeMaterial);
             planeM.receiveShadow = true;
@@ -305,7 +309,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             const shadowGeo = new PlaneBufferGeometry(
                 pieceMaxSize * 3,
-                pieceMaxSize * 3
+                pieceMaxSize * 3,
             );
 
             const lastPiece = puzzleData.pieces[puzzleData.pieces.length - 1];
@@ -314,18 +318,18 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 0,
                 lastPiece.x,
                 lastPiece.y,
-                puzzleData.pieces.length
+                puzzleData.pieces.length,
             ).map((p) => {
                 return new Vector3(
                     puzzleData.pieceSize[0] * p.x * 1.6,
                     0,
-                    puzzleData.pieceSize[1] * p.y * 1.6
+                    puzzleData.pieceSize[1] * p.y * 1.6,
                 );
             });
 
             const neighbourOffsets = createNeighbourOffsets(
                 puzzleData.pieceSize[0],
-                puzzleData.pieceSize[1]
+                puzzleData.pieceSize[1],
             );
             const pieceGeometries = [];
             const pieceMeshes = [];
@@ -337,7 +341,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 extrudeSettings.UVGenerator = PuzzleUVGenerator(puzzleData, i);
                 const geometry = new SimpleExtrudeBufferGeometry(
                     shape,
-                    extrudeSettings
+                    extrudeSettings,
                 );
                 // geometry.center();
                 geometry.rotateX(Math.PI / 2);
@@ -362,7 +366,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 mesh.position.set(
                     -puzzleData.pieceSize[0] / 2,
                     0,
-                    -puzzleData.pieceSize[1] / 2
+                    -puzzleData.pieceSize[1] / 2,
                 );
 
                 base.add(mesh);
@@ -375,7 +379,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 shadowMesh.position.set(
                     -puzzleData.pieceSize[0] / 2,
                     -0.0099,
-                    -puzzleData.pieceSize[1] / 2
+                    -puzzleData.pieceSize[1] / 2,
                 );
                 shadowMesh.visible = false;
 
@@ -388,7 +392,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
                 const pos = validPositions.splice(
                     Math.floor(Math.random() * validPositions.length),
-                    1
+                    1,
                 )[0];
                 // base.position.set(pos.x, pos.y, pos.z);
                 base.position.copy(pos);
@@ -418,7 +422,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 nullVec,
                 nullVec,
                 nullVec,
-                nullVec
+                nullVec,
             );
             connectGeo.verticesNeedUpdate = true;
             const connectMat = new LineBasicMaterial({
@@ -475,8 +479,9 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             let curTrans = new Vector3(
                 -1 + Math.random() * 2,
                 0,
-                -1 + Math.random() * 2
+                -1 + Math.random() * 2,
             );
+
             function animate(time) {
                 if (lastTime === 0) lastTime = time;
                 const delta = time - lastTime;
@@ -536,7 +541,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         obj.position.lerpVectors(
                             obj.startPos,
                             obj.targetPos,
-                            t
+                            t,
                         );
                         if (t >= 1) {
                             obj.position.copy(obj.targetPos);
@@ -556,7 +561,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     raycaster.layers.disable(9);
                     const intersect = raycaster.intersectObjects(
                         scene.children,
-                        true
+                        true,
                     )[0];
                     if (intersect) {
                         raycastPoint.position.copy(intersect.point);
@@ -569,7 +574,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     raycaster.layers.set(1);
                     const intersects = raycaster.intersectObjects(
                         scene.children,
-                        true
+                        true,
                     );
                     if (intersects.length > 0) {
                         // raycastPoint.position.copy(intersects[0].point);
@@ -588,7 +593,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                             pickedObject.grabOffset = new Vector2(
                                 intersects[0].point.x - pickedObject.startPos.x,
-                                intersects[0].point.z - pickedObject.startPos.z
+                                intersects[0].point.z - pickedObject.startPos.z,
                             );
 
                             // pickedObject.translateY(0.01);
@@ -611,7 +616,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         pickedObject.targetPos = new Vector3(
                             point.x - pickedObject.grabOffset.x,
                             targetY,
-                            point.z - pickedObject.grabOffset.y
+                            point.z - pickedObject.grabOffset.y,
                         );
                         pickedObject.startTime = time;
                         pickedObject.animDuration = 30;
@@ -675,11 +680,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         const distance = selfPos.distanceTo(neighbourPos);
                         //@todo: iterate through all neighbours distances, closest distance wins snapping
 
-                        if (distance < selfOffset.length()/2) {
+                        if (distance < selfOffset.length() / 2) {
                             console.log(
                                 '*CLICK*',
                                 NEIGHBOUR_SIDES.getSideName(i),
-                                distance
+                                distance,
                             );
                             const newPos = neighbour.position
                                 .clone()
@@ -710,14 +715,16 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 }
                 hasChanged = false;
             }
+
             controls.addEventListener('change', () => {
                 hasChanged = true;
             });
             renderer.render(scene, camera);
             requestAnimationFrame(animate);
         },
-        onremove: () => {},
-        view: function () {
+        onremove: () => {
+        },
+        view: function() {
             return m('.puzzle-canvas');
         },
     };
