@@ -277,6 +277,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 map: loader.load('/resources/shadowmap.png'),
                 transparent: true,
                 depthWrite: false,
+                side: BackSide,
                 opacity: 0.5,
             });
             const fakeFullShadowMat = new MeshBasicMaterial({
