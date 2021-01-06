@@ -45,7 +45,7 @@ import {
     LineBasicMaterial,
     AudioListener,
     Audio,
-    AudioLoader,
+    AudioLoader, MultiplyBlending,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
@@ -59,6 +59,7 @@ import {
     createSpawnPositionsOutsideArea,
 } from 'client/lib/engine/engine-utils';
 import { SimpleExtrudeBufferGeometry } from '../../../lib/engine/SimpleExtrudeBufferGeometry';
+import { OutlineEffect } from 'three/examples/jsm/effects/OutlineEffect';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     // console.log(puzzleData, i);
@@ -282,6 +283,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 bumpScale: 0.0002,
             });
 
+            const outlineMat = new MeshBasicMaterial({
+                color: 0xff0000,
+                side: BackSide,
+            });
+
             loader.load('/resources/envmap.jpg', (map) => {
                 const envmap = pmremGenerator.fromEquirectangular(map).texture;
                 scene.background = envmap;
@@ -384,6 +390,25 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 );
 
                 base.add(mesh);
+
+                const outlineGeo = new SimpleExtrudeBufferGeometry(
+                    shape,
+                    {
+                        ...extrudeSettings,
+                        offset: pieceMaxSize / 100,
+                        depth: pieceMaxSize / 15,
+                    },
+                );
+                outlineGeo.rotateX(Math.PI / 2);
+                const outlineMesh = new Mesh(outlineGeo, outlineMat);
+                outlineMesh.name = 'outline';
+                outlineMesh.position.set(
+                    -puzzleData.pieceSize[0] / 2,
+                    pieceMaxSize / 100,
+                    -puzzleData.pieceSize[1] / 2,
+                );
+                outlineMesh.visible = false;
+                base.add(outlineMesh);
 
                 // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
                 const shadowMesh = new Mesh(geometry, fakeFullShadowMat);
@@ -596,6 +621,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         if (pickupDown) {
                             pickedObject = intersects[0].object.parent;
                             pickedObject.children[1].visible = true;
+                            pickedObject.children[2].visible = true;
                             pickedObject.startPos = pickedObject.targetPos
                                 ? pickedObject.targetPos.clone()
                                 : pickedObject.position.clone();
@@ -669,6 +695,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     pickedObject.animDuration = 70;
                     //pickedObject.translateY(-0.01);
                     pickedObject.children[1].visible = false;
+                    pickedObject.children[2].visible = false;
 
                     for (
                         let i = 0;
@@ -735,7 +762,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             controls.addEventListener('change', () => {
                 hasChanged = true;
             });
-            renderer.render(scene, camera);
+            // renderer.render(scene, camera);
             requestAnimationFrame(animate);
         },
         onremove: () => {
