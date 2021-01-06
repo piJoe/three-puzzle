@@ -21,31 +21,19 @@ import {
     WireframeGeometry,
     LineSegments,
     Raycaster,
-    BufferGeometry,
-    PointsMaterial,
-    Points,
     Geometry,
     SphereGeometry,
-    DirectionalLightHelper,
-    CameraHelper,
-    PCFSoftShadowMap,
     RepeatWrapping,
-    sRGBEncoding,
-    ReinhardToneMapping,
-    BasicShadowMap,
     MeshBasicMaterial,
-    Object3D,
     PlaneBufferGeometry,
     PMREMGenerator,
     MOUSE,
     BackSide,
     NeverDepth,
-    AlwaysDepth,
-    Line,
     LineBasicMaterial,
     AudioListener,
     Audio,
-    AudioLoader, MultiplyBlending,
+    AudioLoader,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
@@ -53,16 +41,12 @@ import {
     generatePuzzlePaths,
     NEIGHBOUR_SIDES,
 } from 'client/lib/puzzle/puzzle-utils';
-import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
 import {
     createShapeFromPath,
     createSpawnPositionsOutsideArea,
 } from 'client/lib/engine/engine-utils';
 import { SimpleExtrudeBufferGeometry } from '../../../lib/engine/SimpleExtrudeBufferGeometry';
-import { OutlineEffect } from 'three/examples/jsm/effects/OutlineEffect';
 import {
-    applyPositionsToGroup, buildTargetPositionGroup,
-    getPropertyFromGroup,
     setTargetPositionGroup,
     TweenObject,
 } from 'client/lib/engine/game/TweenObject';
@@ -95,14 +79,7 @@ const PuzzleUVGenerator = (puzzleData, i) => {
             ];
         },
 
-        generateSideWallUV: function(
-            geometry,
-            vertices,
-            indexA,
-            indexB,
-            indexC,
-            indexD,
-        ) {
+        generateSideWallUV: function() {
             const nullVec = new Vector2(0, 1);
             return [nullVec, nullVec, nullVec, nullVec];
         },
@@ -166,17 +143,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 clickSound.setVolume(0.5);
             });
 
-            // const geometry = new BoxGeometry();
-            // const material = new MeshBasicMaterial( { color: 0x00ff00 } );
-            // const cube = new Mesh( geometry, material );
-            // scene.add( cube );
-
-            // const axesHelper = new AxesHelper(5);
-            // scene.add(axesHelper);
-
-            // const ambientLight = new AmbientLight(0xffffff * 0.2); // soft white light
-            // scene.add(ambientLight);
-
             const directionalLight = new DirectionalLight(0xffffff, 1.25);
             directionalLight.position.set(puzzleData.width, 2, 0);
             directionalLight.lookAt(
@@ -191,23 +157,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             );
             window.light = directionalLight;
 
-            // directionalLight.castShadow = true;
-            // directionalLight.shadow.mapSize.width = 2048; // default
-            // directionalLight.shadow.mapSize.height = 2048; // default
-            // directionalLight.shadow.camera.near = 0.0001; // default
-            // directionalLight.shadow.camera.far = 4; // default
-            // directionalLight.shadow.camera.left = -puzzleData.height*2;
-            // directionalLight.shadow.camera.right = puzzleData.height*2;
-            // directionalLight.shadow.camera.top = -puzzleData.width*2;
-            // directionalLight.shadow.camera.bottom = puzzleData.width*2;
-            // window.light = directionalLight;
-
-            // const dhelper = new DirectionalLightHelper( directionalLight, 1 );
-            // scene.add( dhelper );
-
-            // const shelper = new CameraHelper(directionalLight.shadow.camera);
-            // scene.add(shelper);
-
             scene.add(directionalLight);
             scene.add(directionalLight.target);
 
@@ -215,10 +164,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 antialias: true,
             });
             renderer.physicallyCorrectLights = true;
-            // renderer.outputEncoding = sRGBEncoding;
-            // renderer.toneMapping = ReinhardToneMapping;
-            // renderer.shadowMap.enabled = true;
-            // renderer.shadowMap.type = BasicShadowMap;
             window.renderer = renderer;
 
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -376,9 +321,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // geometry.center();
                 geometry.rotateX(Math.PI / 2);
                 // geometry.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
-                // geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
-                // geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
-                //geometry.translate(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
 
                 pieceGeometries.push(geometry);
 
