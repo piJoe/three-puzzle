@@ -567,6 +567,10 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                                 intersects[0].point.x - pickedObject[0].position.x,
                                 intersects[0].point.z - pickedObject[0].position.z,
                             );
+                            pickedObject.forEach(o => {
+                                o.onPickUp();
+                                o.animDuration = 50;
+                            });
                             setTargetPositionGroup(pickedObject, 'position', pickedObject[0].position, pickedObject[0].position.clone().add(new Vector3(0, 0.01, 0)));
                         }
                     }
@@ -584,6 +588,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             0.01,
                             point.z - grabOffset.y,
                         );
+                        pickedObject.forEach(o => o.animDuration = 0);
                         setTargetPositionGroup(pickedObject, 'position', pickedObject[0].position, targetVec);
 
                         // debug neighbours
@@ -606,16 +611,16 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 // we stopped dragging an object
                 if (!pickupDown && pickedObject.length > 0) {
-                    console.log(pickedObject);
-
                     const targetVec = new Vector3(
                         pickedObject[0].position.x,
                         0.0,
                         pickedObject[0].position.z,
                     );
-                    setTargetPositionGroup(pickedObject, 'targetPosition', pickedObject[0].position, targetVec);
+                    pickedObject.forEach(o => o.animDuration = 50);
+                    setTargetPositionGroup(pickedObject, 'position', pickedObject[0].position, targetVec);
 
                     pickedObject.forEach(o => o.unselect());
+                    pickedObject.forEach(o => o.onDrop());
 
                     pickedObject.forEach(gObj => {
                         for (
@@ -635,7 +640,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             const neighbourOffset = neighbourOffsets[(i + 2) % 4];
 
                             if (gObj.sameGroup(neighbour)) {
-                                console.log('already sharing a group!');
                                 continue;
                             }
 
@@ -647,9 +651,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                                 .add(neighbourOffset);
                             const distance = selfPos.distanceTo(neighbourPos);
                             //@todo: iterate through all neighbours distances, closest distance wins snapping
-                            //@todo: figure out what to do here ... :shrug:
-
-                            console.log('NEIGHBOUR CHECK DISTANCE', distance);
 
                             if (distance < selfOffset.length() / 2) {
                                 gObj.addGroup(neighbour);
@@ -685,6 +686,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     ];
                     connectLine.geometry.verticesNeedUpdate = true;
                 }
+
 
                 hasChanged = true;
                 if (hasChanged) {

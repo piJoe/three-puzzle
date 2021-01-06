@@ -34,6 +34,12 @@ export class GameObject extends TweenObject {
         }
     }
 
+    updateShadowState(shadowActive) {
+        if (this.shadowMesh !== null) {
+            this.shadowMesh.visible = shadowActive;
+        }
+    }
+
     select() {
         this.updateSelectState(true);
         if (this.group === null) {
@@ -66,11 +72,11 @@ export class GameObject extends TweenObject {
     }
 
     onPickUp(event) {
-
+        this.updateShadowState(true);
     }
 
     onDrop(event) {
-
+        this.updateShadowState(false);
     }
 
     updateGroup(newGroup) {

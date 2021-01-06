@@ -14,6 +14,11 @@ export class TweenObject extends Object3D {
     }
 
     setTargetPosition(vec3) {
+        if (this.animDuration === 0) {
+            this.position.copy(vec3);
+            return;
+        }
+
         this.startPosition = this.position.clone();
         this.targetPosition = vec3;
         this.startTime = getGlobalTime();
