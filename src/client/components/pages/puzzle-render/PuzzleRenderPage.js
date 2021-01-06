@@ -127,7 +127,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             window.addEventListener('pointermove', onMouseMove);
 
             let pickupDown = false;
-            let pickedObject = null;
+            let pickedObject = [];
 
             function key(k, isDown) {
                 // if (k.toLowerCase() === 'f') pickupDown = isDown;
@@ -376,7 +376,40 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 pieceGeometries.push(geometry);
 
-                const base = new TweenObject();
+                const outlineGeo = new SimpleExtrudeBufferGeometry(
+                    shape,
+                    {
+                        ...extrudeSettings,
+                        offset: pieceMaxSize / 100,
+                        depth: pieceMaxSize / 15,
+                    },
+                );
+                outlineGeo.rotateX(Math.PI / 2);
+                const outlineMesh = new Mesh(outlineGeo, outlineMat);
+                outlineMesh.name = 'outline';
+                outlineMesh.position.set(
+                    -puzzleData.pieceSize[0] / 2,
+                    pieceMaxSize / 100,
+                    -puzzleData.pieceSize[1] / 2,
+                );
+                outlineMesh.visible = false;
+
+                // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
+                const shadowMesh = new Mesh(geometry, fakeFullShadowMat);
+                shadowMesh.name = 'shadow';
+                // shadowMesh.rotateX(-Math.PI / 2);
+                // shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0098, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);
+                shadowMesh.position.set(
+                    -puzzleData.pieceSize[0] / 2,
+                    -0.0099,
+                    -puzzleData.pieceSize[1] / 2,
+                );
+                shadowMesh.visible = false;
+
+                const base = new GameObject({
+                    selectMesh: outlineMesh,
+                    shadowMesh: shadowMesh,
+                });
 
                 const mesh = new Mesh(geometry, material);
                 // mesh.castShadow = true;
@@ -395,38 +428,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 base.add(mesh);
 
-                const outlineGeo = new SimpleExtrudeBufferGeometry(
-                    shape,
-                    {
-                        ...extrudeSettings,
-                        offset: pieceMaxSize / 100,
-                        depth: pieceMaxSize / 15,
-                    },
-                );
-                outlineGeo.rotateX(Math.PI / 2);
-                const outlineMesh = new Mesh(outlineGeo, outlineMat);
-                outlineMesh.name = 'outline';
-                outlineMesh.position.set(
-                    -puzzleData.pieceSize[0] / 2,
-                    pieceMaxSize / 100,
-                    -puzzleData.pieceSize[1] / 2,
-                );
-                outlineMesh.visible = false;
-                base.add(outlineMesh);
-
-                // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
-                const shadowMesh = new Mesh(geometry, fakeFullShadowMat);
-                shadowMesh.name = 'shadow';
-                // shadowMesh.rotateX(-Math.PI / 2);
-                // shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0098, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);
-                shadowMesh.position.set(
-                    -puzzleData.pieceSize[0] / 2,
-                    -0.0099,
-                    -puzzleData.pieceSize[1] / 2,
-                );
-                shadowMesh.visible = false;
-
-                base.add(shadowMesh);
                 base.puzzleInfo = puzzlePiece;
                 // base.layers.set(1);
 
@@ -607,7 +608,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 raycaster.setFromCamera(mouse, camera);
 
                 // cast for virtual mouse pointer
-                if (pickedObject === null) {
+                if (pickedObject.length === 0) {
                     raycaster.layers.enableAll();
                     raycaster.layers.disable(LayerDefintion.IGNORE_RAYCAST);
                     const intersect = raycaster.intersectObjects(
@@ -621,7 +622,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 }
 
                 // cast for picking up objects
-                if (pickedObject === null) {
+                if (pickedObject.length === 0) {
                     raycaster.layers.set(1);
                     const intersects = raycaster.intersectObjects(
                         scene.children,
@@ -631,23 +632,16 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         // raycastPoint.position.copy(intersects[0].point);
                         // console.log(mouse, intersects[0]);
                         if (pickupDown) {
-                            pickedObject = intersects[0].object.parent;
-                            pickedObject.children[1].visible = true;
-                            pickedObject.children[2].visible = true;
-                            // pickedObject.startPos = pickedObject.targetPos
-                            //     ? pickedObject.targetPos.clone()
-                            //     : pickedObject.position.clone();
-                            // pickedObject.startTime = time;
-                            // pickedObject.animDuration = 50;
-                            // pickedObject.targetPos = pickedObject.startPos
-                            //     .clone()
-                            //     .setY(pickedObject.startPos.y + 0.01);
-                            pickedObject.setTargetPositionY(0.01);
+                            const gObj = intersects[0].object.parent;
+                            pickedObject = gObj.select();
+                            pickedObject.forEach(gObj => {
+                                gObj.setTargetPositionY(0.01);
+                                gObj.grabOffset = new Vector2(
+                                    intersects[0].point.x - gObj.position.x,
+                                    intersects[0].point.z - gObj.position.z,
+                                );
+                            });
 
-                            pickedObject.grabOffset = new Vector2(
-                                intersects[0].point.x - pickedObject.position.x,
-                                intersects[0].point.z - pickedObject.position.z,
-                            );
 
                             // pickedObject.translateY(0.01);
                         }
@@ -655,34 +649,20 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 }
 
                 // we're actively dragging an object
-                if (pickupDown && pickedObject !== null) {
+                if (pickupDown && pickedObject.length > 0) {
                     raycaster.layers.set(0);
                     const intersection = raycaster.intersectObject(planeM)[0];
                     if (intersection) {
                         const point = intersection.point;
 
-                        // let targetY = pickedObject.position.y;
-                        // if (pickedObject.targetPos) {
-                        //     targetY = pickedObject.targetPos.y;
-                        // }
-                        // pickedObject.startPos = pickedObject.position.clone();
-                        // pickedObject.targetPos = new Vector3(
-                        //     point.x - pickedObject.grabOffset.x,
-                        //     targetY,
-                        //     point.z - pickedObject.grabOffset.y,
-                        // );
-                        // pickedObject.startTime = time;
-                        // pickedObject.animDuration = 30;
-                        pickedObject.setTargetPositionX(
-                            point.x - pickedObject.grabOffset.x
-                        );
-                        pickedObject.setTargetPositionZ(
-                            point.z - pickedObject.grabOffset.y
-                        );
-
-                        raycastPoint.position
-                            .copy(point)
-                            .setY(pickedObject.position.y);
+                        pickedObject.forEach(gObj => {
+                            gObj.setTargetPositionX(
+                                point.x - gObj.grabOffset.x
+                            );
+                            gObj.setTargetPositionZ(
+                                point.z - gObj.grabOffset.y
+                            );
+                        });
 
                         // debug neighbours
                         // connectLine.geometry.vertices = [];
@@ -703,61 +683,69 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 }
 
                 // we stopped dragging an object
-                if (!pickupDown && pickedObject !== null) {
-                    // pickedObject.startPos = pickedObject.targetPos
-                    //     ? pickedObject.targetPos.clone()
-                    //     : pickedObject.position.clone();
-                    // pickedObject.startTime = time;
-                    // pickedObject.targetPos = pickedObject.startPos
-                    //     .clone()
-                    //     .setY(pickedObject.startPos.y - 0.01);
-                    // pickedObject.animDuration = 70;
-                    pickedObject.setTargetPositionY(0);
-                    //pickedObject.translateY(-0.01);
-                    pickedObject.children[1].visible = false;
-                    pickedObject.children[2].visible = false;
+                if (!pickupDown && pickedObject.length > 0) {
+                    console.log(pickedObject);
+                    pickedObject.forEach(gObj => {
+                        gObj.setTargetPositionY(0);
+                        gObj.unselect();
 
-                    for (
-                        let i = 0;
-                        i < pickedObject.puzzleInfo.neighbours.length;
-                        i++
-                    ) {
-                        const neighbourNo =
-                            pickedObject.puzzleInfo.neighbours[i];
-                        if (neighbourNo < 0) {
-                            continue;
-                        }
+                    });
 
-                        const neighbour = pieceMeshes[neighbourNo];
-                        const selfOffset = neighbourOffsets[i];
-                        const neighbourOffset = neighbourOffsets[(i + 2) % 4];
+                    pickedObject.forEach(gObj => {
+                        for (
+                            let i = 0;
+                            i < gObj.puzzleInfo.neighbours.length;
+                            i++
+                        ) {
+                            const neighbourNo =
+                                gObj.puzzleInfo.neighbours[i];
+                            if (neighbourNo < 0) {
+                                continue;
+                            }
 
-                        const selfPos = pickedObject.targetPosition
-                            .clone()
-                            .add(selfOffset);
-                        const neighbourPos = neighbour.position
-                            .clone()
-                            .add(neighbourOffset);
-                        const distance = selfPos.distanceTo(neighbourPos);
-                        //@todo: iterate through all neighbours distances, closest distance wins snapping
 
-                        if (distance < selfOffset.length() / 2) {
-                            clickSound.play();
-                            console.log(
-                                '*CLICK*',
-                                NEIGHBOUR_SIDES.getSideName(i),
-                                distance,
-                            );
-                            const newPos = neighbour.position
+                            const neighbour = pieceMeshes[neighbourNo];
+                            const selfOffset = neighbourOffsets[i];
+                            const neighbourOffset = neighbourOffsets[(i + 2) % 4];
+
+                            // if (gObj.sameGroup(neighbour)) {
+                            //     console.log('already sharing a group!');
+                            //     continue;
+                            // }
+
+                            const selfPos = gObj.targetPosition
                                 .clone()
-                                .add(neighbourOffset)
-                                .sub(selfOffset);
-                            pickedObject.setTargetPosition(newPos);
-                            break;
-                        }
-                    }
+                                .add(selfOffset);
+                            const neighbourPos = (neighbour.targetPosition ? neighbour.targetPosition : neighbour.position)
+                                .clone()
+                                .add(neighbourOffset);
+                            const distance = selfPos.distanceTo(neighbourPos);
+                            //@todo: iterate through all neighbours distances, closest distance wins snapping
+                            //@todo: figure out what to do here ... :shrug:
 
-                    pickedObject = null;
+                            console.log('NEIGHBOUR CHECK DISTANCE', distance);
+
+                            if (distance < selfOffset.length() / 2) {
+                                gObj.addGroup(neighbour);
+                                clickSound.play();
+                                console.log(
+                                    '*CLICK*',
+                                    NEIGHBOUR_SIDES.getSideName(i),
+                                    distance,
+                                );
+                                const newPos = (neighbour.targetPosition ? neighbour.targetPosition : neighbour.position)
+                                    .clone()
+                                    .add(neighbourOffset)
+                                    .sub(selfOffset);
+
+                                gObj.setTargetPosition(newPos);
+                                break;
+                            }
+                        }
+                    })
+
+
+                    pickedObject = [];
 
                     connectLine.geometry.vertices = [
                         nullVec,
