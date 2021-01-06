@@ -60,6 +60,8 @@ import {
 } from 'client/lib/engine/engine-utils';
 import { SimpleExtrudeBufferGeometry } from '../../../lib/engine/SimpleExtrudeBufferGeometry';
 import { OutlineEffect } from 'three/examples/jsm/effects/OutlineEffect';
+import { TweenObject } from 'client/lib/engine/game/TweenObject';
+import { updateGlobalTime } from 'client/lib/engine/game/GlobalTime';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     // console.log(puzzleData, i);
@@ -372,7 +374,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 pieceGeometries.push(geometry);
 
-                const base = new Object3D();
+                const base = new TweenObject();
 
                 const mesh = new Mesh(geometry, material);
                 // mesh.castShadow = true;
@@ -521,7 +523,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 -1 + Math.random() * 2,
             );
 
+            // let delta100Ticks = 0;
+            // let tickCount = 0;
             function animate(time) {
+                const d = updateGlobalTime(time);
+                // const tickStartTime = performance.now();
                 if (lastTime === 0) lastTime = time;
                 const delta = time - lastTime;
                 lastTime = time;
@@ -573,24 +579,27 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // hasChanged = true;
 
                 // interpolate between positions
-                for (let i = 0; i < scene.children.length; i++) {
-                    const obj = scene.children[i];
-                    if (obj.startTime && obj.startPos && obj.targetPos) {
-                        const t = (time - obj.startTime) / obj.animDuration;
-                        obj.position.lerpVectors(
-                            obj.startPos,
-                            obj.targetPos,
-                            t,
-                        );
-                        if (t >= 1) {
-                            obj.position.copy(obj.targetPos);
-                            obj.startPos = null;
-                            obj.targetPos = null;
-                            obj.startTime = null;
-                            obj.animDuration = null;
-                        }
-                    }
-                }
+                // for (let i = 0; i < scene.children.length; i++) {
+                //     const obj = scene.children[i];
+                //     if (obj.startTime && obj.startPos && obj.targetPos) {
+                //         const t = (time - obj.startTime) / obj.animDuration;
+                //         obj.position.lerpVectors(
+                //             obj.startPos,
+                //             obj.targetPos,
+                //             t,
+                //         );
+                //         if (t >= 1) {
+                //             obj.position.copy(obj.targetPos);
+                //             obj.startPos = null;
+                //             obj.targetPos = null;
+                //             obj.startTime = null;
+                //             obj.animDuration = null;
+                //         }
+                //     }
+                // }
+                scene.traverse(obj => {
+                    obj instanceof TweenObject ? obj.tick() : false;
+                })
 
                 raycaster.setFromCamera(mouse, camera);
 
@@ -622,18 +631,19 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             pickedObject = intersects[0].object.parent;
                             pickedObject.children[1].visible = true;
                             pickedObject.children[2].visible = true;
-                            pickedObject.startPos = pickedObject.targetPos
-                                ? pickedObject.targetPos.clone()
-                                : pickedObject.position.clone();
-                            pickedObject.startTime = time;
-                            pickedObject.animDuration = 50;
-                            pickedObject.targetPos = pickedObject.startPos
-                                .clone()
-                                .setY(pickedObject.startPos.y + 0.01);
+                            // pickedObject.startPos = pickedObject.targetPos
+                            //     ? pickedObject.targetPos.clone()
+                            //     : pickedObject.position.clone();
+                            // pickedObject.startTime = time;
+                            // pickedObject.animDuration = 50;
+                            // pickedObject.targetPos = pickedObject.startPos
+                            //     .clone()
+                            //     .setY(pickedObject.startPos.y + 0.01);
+                            pickedObject.setTargetPositionY(0.01);
 
                             pickedObject.grabOffset = new Vector2(
-                                intersects[0].point.x - pickedObject.startPos.x,
-                                intersects[0].point.z - pickedObject.startPos.z,
+                                intersects[0].point.x - pickedObject.position.x,
+                                intersects[0].point.z - pickedObject.position.z,
                             );
 
                             // pickedObject.translateY(0.01);
@@ -648,18 +658,24 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     if (intersection) {
                         const point = intersection.point;
 
-                        let targetY = pickedObject.position.y;
-                        if (pickedObject.targetPos) {
-                            targetY = pickedObject.targetPos.y;
-                        }
-                        pickedObject.startPos = pickedObject.position.clone();
-                        pickedObject.targetPos = new Vector3(
-                            point.x - pickedObject.grabOffset.x,
-                            targetY,
-                            point.z - pickedObject.grabOffset.y,
+                        // let targetY = pickedObject.position.y;
+                        // if (pickedObject.targetPos) {
+                        //     targetY = pickedObject.targetPos.y;
+                        // }
+                        // pickedObject.startPos = pickedObject.position.clone();
+                        // pickedObject.targetPos = new Vector3(
+                        //     point.x - pickedObject.grabOffset.x,
+                        //     targetY,
+                        //     point.z - pickedObject.grabOffset.y,
+                        // );
+                        // pickedObject.startTime = time;
+                        // pickedObject.animDuration = 30;
+                        pickedObject.setTargetPositionX(
+                            point.x - pickedObject.grabOffset.x
                         );
-                        pickedObject.startTime = time;
-                        pickedObject.animDuration = 30;
+                        pickedObject.setTargetPositionZ(
+                            point.z - pickedObject.grabOffset.y
+                        );
 
                         raycastPoint.position
                             .copy(point)
@@ -685,14 +701,15 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 // we stopped dragging an object
                 if (!pickupDown && pickedObject !== null) {
-                    pickedObject.startPos = pickedObject.targetPos
-                        ? pickedObject.targetPos.clone()
-                        : pickedObject.position.clone();
-                    pickedObject.startTime = time;
-                    pickedObject.targetPos = pickedObject.startPos
-                        .clone()
-                        .setY(pickedObject.startPos.y - 0.01);
-                    pickedObject.animDuration = 70;
+                    // pickedObject.startPos = pickedObject.targetPos
+                    //     ? pickedObject.targetPos.clone()
+                    //     : pickedObject.position.clone();
+                    // pickedObject.startTime = time;
+                    // pickedObject.targetPos = pickedObject.startPos
+                    //     .clone()
+                    //     .setY(pickedObject.startPos.y - 0.01);
+                    // pickedObject.animDuration = 70;
+                    pickedObject.setTargetPositionY(0);
                     //pickedObject.translateY(-0.01);
                     pickedObject.children[1].visible = false;
                     pickedObject.children[2].visible = false;
@@ -712,7 +729,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         const selfOffset = neighbourOffsets[i];
                         const neighbourOffset = neighbourOffsets[(i + 2) % 4];
 
-                        const selfPos = pickedObject.targetPos
+                        const selfPos = pickedObject.targetPosition
                             .clone()
                             .add(selfOffset);
                         const neighbourPos = neighbour.position
@@ -732,7 +749,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                                 .clone()
                                 .add(neighbourOffset)
                                 .sub(selfOffset);
-                            pickedObject.targetPos.copy(newPos);
+                            pickedObject.setTargetPosition(newPos);
                             break;
                         }
                     }
@@ -757,12 +774,22 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     renderer.render(scene, camera);
                 }
                 hasChanged = false;
+                //
+                // const tickEndTime = performance.now();
+                // delta100Ticks += tickEndTime - tickStartTime;
+                // tickCount++;
+                // if (tickCount >= 100) {
+                //     console.log('last 100 ticks avg', delta100Ticks/100,'ms');
+                //     delta100Ticks = 0;
+                //     tickCount = 0;
+                // }
+
             }
 
             controls.addEventListener('change', () => {
                 hasChanged = true;
             });
-            // renderer.render(scene, camera);
+            renderer.render(scene, camera);
             requestAnimationFrame(animate);
         },
         onremove: () => {
