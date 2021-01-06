@@ -10,7 +10,7 @@ export class GameObject extends TweenObject {
         this.isSelectable = options.selectable ? options.selectable : true;
 
         // this.parentGameObject = null;
-        // @todo: group wieder rausschmeißen, evtl doch ne THREE.group anlegen und kombinierte pieces da rein werfen...
+        // @todo: group restlos entfernen. wird nicht benötigt. handling für puzzle pieces über eigenes PuzzlePieceObject sinnvoller (geo merging, position store etc.)
         this.group = null;
 
         this.shadowMesh = null;
