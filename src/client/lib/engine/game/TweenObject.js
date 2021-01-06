@@ -90,11 +90,12 @@ export class TweenObject extends Object3D {
     }
 }
 
-export function setTargetPositionGroup(group, anchor, targetVec) {
+export function setTargetPositionGroup(group, propName, anchor, targetVec) {
     if (group.length < 1) return;
     const relVec = targetVec.clone().sub(anchor);
     for(let i = 0; i < group.length; i++) {
         const obj = group[i];
-        obj.setTargetPosition(obj.position.clone().add(relVec));
+        const pos = obj[propName];
+        obj.setTargetPosition(pos.clone().add(relVec));
     }
 }
