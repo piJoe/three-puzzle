@@ -129,6 +129,4 @@ export class GameObject extends TweenObject {
     isGroupLeader() {
         return this.getGroupLeader() === this;
     }
-
 }
-

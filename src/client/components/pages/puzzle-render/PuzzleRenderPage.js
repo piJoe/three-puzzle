@@ -60,7 +60,7 @@ import {
 } from 'client/lib/engine/engine-utils';
 import { SimpleExtrudeBufferGeometry } from '../../../lib/engine/SimpleExtrudeBufferGeometry';
 import { OutlineEffect } from 'three/examples/jsm/effects/OutlineEffect';
-import { TweenObject } from 'client/lib/engine/game/TweenObject';
+import { setTargetPositionGroup, TweenObject } from 'client/lib/engine/game/TweenObject';
 import { updateGlobalTime } from 'client/lib/engine/game/GlobalTime';
 import { GameObject } from 'client/lib/engine/game/GameObject';
 import { LayerDefintion } from 'client/lib/engine/layers';
@@ -128,6 +128,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             let pickupDown = false;
             let pickedObject = [];
+            let grabOffset = new Vector2();
 
             function key(k, isDown) {
                 // if (k.toLowerCase() === 'f') pickupDown = isDown;
@@ -584,7 +585,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 scene.traverse(obj => {
                     (obj instanceof GameObject || obj instanceof TweenObject) ? obj.tick() : false;
-                })
+                });
 
                 raycaster.setFromCamera(mouse, camera);
 
@@ -615,16 +616,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         if (pickupDown) {
                             const gObj = intersects[0].object.parent;
                             pickedObject = gObj.select();
-                            pickedObject.forEach(gObj => {
-                                gObj.setTargetPositionY(0.01);
-                                gObj.grabOffset = new Vector2(
-                                    intersects[0].point.x - gObj.position.x,
-                                    intersects[0].point.z - gObj.position.z,
-                                );
-                            });
-
-
-                            // pickedObject.translateY(0.01);
+                            grabOffset.set(
+                                intersects[0].point.x - pickedObject[0].position.x,
+                                intersects[0].point.z - pickedObject[0].position.z,
+                            );
+                            setTargetPositionGroup(pickedObject, pickedObject[0].position, pickedObject[0].position.clone().add(new Vector3(0, 0.01, 0)));
                         }
                     }
                 }
@@ -636,14 +632,12 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     if (intersection) {
                         const point = intersection.point;
 
-                        pickedObject.forEach(gObj => {
-                            gObj.setTargetPositionX(
-                                point.x - gObj.grabOffset.x
-                            );
-                            gObj.setTargetPositionZ(
-                                point.z - gObj.grabOffset.y
-                            );
-                        });
+                        const targetVec = new Vector3(
+                            point.x - grabOffset.x,
+                            0.01,
+                            point.z - grabOffset.y,
+                        );
+                        setTargetPositionGroup(pickedObject, pickedObject[0].position, targetVec);
 
                         // debug neighbours
                         // connectLine.geometry.vertices = [];
@@ -666,11 +660,15 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // we stopped dragging an object
                 if (!pickupDown && pickedObject.length > 0) {
                     console.log(pickedObject);
-                    pickedObject.forEach(gObj => {
-                        gObj.setTargetPositionY(0);
-                        gObj.unselect();
 
-                    });
+                    const targetVec = new Vector3(
+                        pickedObject[0].position.x,
+                        0.0,
+                        pickedObject[0].position.z,
+                    );
+                    setTargetPositionGroup(pickedObject, pickedObject[0].position, targetVec);
+
+                    pickedObject.forEach(o => o.unselect());
 
                     pickedObject.forEach(gObj => {
                         for (
@@ -689,10 +687,10 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             const selfOffset = neighbourOffsets[i];
                             const neighbourOffset = neighbourOffsets[(i + 2) % 4];
 
-                            // if (gObj.sameGroup(neighbour)) {
-                            //     console.log('already sharing a group!');
-                            //     continue;
-                            // }
+                            if (gObj.sameGroup(neighbour)) {
+                                console.log('already sharing a group!');
+                                continue;
+                            }
 
                             const selfPos = gObj.targetPosition
                                 .clone()
@@ -719,11 +717,12 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                                     .add(neighbourOffset)
                                     .sub(selfOffset);
 
-                                gObj.setTargetPosition(newPos);
+                                // gObj.setTargetPosition(newPos);
+                                setTargetPositionGroup(pickedObject, gObj.position, newPos);
                                 break;
                             }
                         }
-                    })
+                    });
 
 
                     pickedObject = [];

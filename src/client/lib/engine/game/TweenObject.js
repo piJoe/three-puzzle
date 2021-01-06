@@ -1,4 +1,4 @@
-import { Object3D } from 'three';
+import { Object3D, Vector3 } from 'three';
 import { getGlobalTime } from 'client/lib/engine/game/GlobalTime';
 
 export class TweenObject extends Object3D {
@@ -87,5 +87,14 @@ export class TweenObject extends Object3D {
         const alpha = (time - this.startTime) / this.animDuration;
         this.updatePosition(alpha);
         this.updateQuaternion(alpha);
+    }
+}
+
+export function setTargetPositionGroup(group, anchor, targetVec) {
+    if (group.length < 1) return;
+    const relVec = targetVec.clone().sub(anchor);
+    for(let i = 0; i < group.length; i++) {
+        const obj = group[i];
+        obj.setTargetPosition(obj.position.clone().add(relVec));
     }
 }
