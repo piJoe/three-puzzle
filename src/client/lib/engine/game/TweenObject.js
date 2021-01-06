@@ -1,4 +1,4 @@
-import { Object3D, Vector3 } from 'three';
+import { Object3D } from 'three';
 import { getGlobalTime } from 'client/lib/engine/game/GlobalTime';
 
 export class TweenObject extends Object3D {
