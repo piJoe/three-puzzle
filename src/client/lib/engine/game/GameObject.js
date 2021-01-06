@@ -10,6 +10,7 @@ export class GameObject extends TweenObject {
         this.isSelectable = options.selectable ? options.selectable : true;
 
         // this.parentGameObject = null;
+        // @todo: group wieder rausschmeißen, evtl doch ne THREE.group anlegen und kombinierte pieces da rein werfen...
         this.group = null;
 
         this.shadowMesh = null;

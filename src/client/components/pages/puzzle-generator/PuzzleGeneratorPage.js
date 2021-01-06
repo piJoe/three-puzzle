@@ -247,6 +247,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
                             700,
                             800,
                             1000,
+                            2000,
                             // @todo: figure out sane values for piece sizes relative to total piece count
                             // (500-1000 pieces = ~ 2*2cm, 200-400 = ~ 3*3cm, 50-100 = ~4*4cm)
                         ].map((val) =>
