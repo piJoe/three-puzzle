@@ -62,6 +62,8 @@ import { SimpleExtrudeBufferGeometry } from '../../../lib/engine/SimpleExtrudeBu
 import { OutlineEffect } from 'three/examples/jsm/effects/OutlineEffect';
 import { TweenObject } from 'client/lib/engine/game/TweenObject';
 import { updateGlobalTime } from 'client/lib/engine/game/GlobalTime';
+import { GameObject } from 'client/lib/engine/game/GameObject';
+import { LayerDefintion } from 'client/lib/engine/layers';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     // console.log(puzzleData, i);
@@ -442,6 +444,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 scene.add(base);
                 pieceMeshes.push(base);
             }
+            console.log(pieceMeshes[0]);
 
             const dot = new SphereGeometry(0.002);
             const raycastMat = new MeshBasicMaterial({
@@ -598,7 +601,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 //     }
                 // }
                 scene.traverse(obj => {
-                    obj instanceof TweenObject ? obj.tick() : false;
+                    (obj instanceof GameObject || obj instanceof TweenObject) ? obj.tick() : false;
                 })
 
                 raycaster.setFromCamera(mouse, camera);
@@ -606,7 +609,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // cast for virtual mouse pointer
                 if (pickedObject === null) {
                     raycaster.layers.enableAll();
-                    raycaster.layers.disable(9);
+                    raycaster.layers.disable(LayerDefintion.IGNORE_RAYCAST);
                     const intersect = raycaster.intersectObjects(
                         scene.children,
                         true,
