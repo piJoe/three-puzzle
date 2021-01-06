@@ -582,25 +582,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // pieceMeshes[currentObject].translateOnAxis(curTrans, delta*0.5);
                 // hasChanged = true;
 
-                // interpolate between positions
-                // for (let i = 0; i < scene.children.length; i++) {
-                //     const obj = scene.children[i];
-                //     if (obj.startTime && obj.startPos && obj.targetPos) {
-                //         const t = (time - obj.startTime) / obj.animDuration;
-                //         obj.position.lerpVectors(
-                //             obj.startPos,
-                //             obj.targetPos,
-                //             t,
-                //         );
-                //         if (t >= 1) {
-                //             obj.position.copy(obj.targetPos);
-                //             obj.startPos = null;
-                //             obj.targetPos = null;
-                //             obj.startTime = null;
-                //             obj.animDuration = null;
-                //         }
-                //     }
-                // }
                 scene.traverse(obj => {
                     (obj instanceof GameObject || obj instanceof TweenObject) ? obj.tick() : false;
                 })
