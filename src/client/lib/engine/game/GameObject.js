@@ -46,7 +46,7 @@ export class GameObject extends TweenObject {
         if (this.group === null) {
             return [this];
         }
-        for(let i = 0; i < this.group.length; i++) {
+        for (let i = 0; i < this.group.length; i++) {
             const gObj = this.group[i];
             gObj.updateSelectState(true);
         }
@@ -73,11 +73,14 @@ export class GameObject extends TweenObject {
     }
 
     onPickUp(event) {
-        this.updateShadowState(true);
+        // this.updateShadowState(true);
     }
 
     onDrop(event) {
-        this.updateShadowState(false);
+        // window.setTimeout(() => {
+        //         this.updateShadowState(false);
+        //     }, 80,
+        // );
     }
 
     updateGroup(newGroup) {
@@ -135,5 +138,17 @@ export class GameObject extends TweenObject {
 
     isGroupLeader() {
         return this.getGroupLeader() === this;
+    }
+
+    tick() {
+        if (!super.tick()) { // ticking did change something
+            return false;
+        }
+
+        if (this.shadowMesh !== null) {
+            this.updateShadowState(this.position.y > 0);
+            this.shadowMesh.position.y = Math.min(-this.position.y + 0.0001, -0.001);
+        }
+        return true;
     }
 }

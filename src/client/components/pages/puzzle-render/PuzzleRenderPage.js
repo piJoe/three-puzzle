@@ -309,6 +309,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const pieceGeometries = [];
             const pieceMeshes = [];
             let bufferOffset = 0;
+            updateGlobalTime(performance.now());
             for (let i = 0; i < puzzlePaths.length; i++) {
                 const puzzlePiece = puzzleData.pieces[i];
                 const shape = createShapeFromPath(puzzlePaths[i]);
@@ -343,7 +344,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 outlineMesh.visible = false;
 
                 // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
-                const shadowMesh = new Mesh(geometry, fakeFullShadowMat);
+                const shadowMesh = new Mesh(outlineGeo, fakeFullShadowMat);
                 shadowMesh.name = 'shadow';
                 // shadowMesh.rotateX(-Math.PI / 2);
                 // shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0098, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);
@@ -387,7 +388,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     1,
                 )[0];
                 // base.position.set(pos.x, pos.y, pos.z);
-                base.position.copy(pos);
+                // base.position.copy(pos);
+                base.moveToTargetPos(pos, 800);
                 // console.log(base.position);
 
                 scene.add(base);
@@ -569,9 +571,13 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             );
                             pickedObject.forEach(o => {
                                 o.onPickUp();
-                                o.animDuration = 50;
                             });
-                            setTargetPositionGroup(pickedObject, 'position', pickedObject[0].position, pickedObject[0].position.clone().add(new Vector3(0, 0.01, 0)));
+                            setTargetPositionGroup(
+                                pickedObject,
+                                'targetPosition',
+                                pickedObject[0].targetPosition,
+                                pickedObject[0].targetPosition.clone().add(new Vector3(0, 0.01, 0)),
+                                150);
                         }
                     }
                 }
@@ -588,8 +594,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             0.01,
                             point.z - grabOffset.y,
                         );
-                        pickedObject.forEach(o => o.animDuration = 0);
-                        setTargetPositionGroup(pickedObject, 'position', pickedObject[0].position, targetVec);
+                        setTargetPositionGroup(pickedObject, 'targetPosition', pickedObject[0].targetPosition, targetVec, 0);
 
                         // debug neighbours
                         // connectLine.geometry.vertices = [];
@@ -612,12 +617,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // we stopped dragging an object
                 if (!pickupDown && pickedObject.length > 0) {
                     const targetVec = new Vector3(
-                        pickedObject[0].position.x,
+                        pickedObject[0].targetPosition.x,
                         0.0,
-                        pickedObject[0].position.z,
+                        pickedObject[0].targetPosition.z,
                     );
-                    pickedObject.forEach(o => o.animDuration = 50);
-                    setTargetPositionGroup(pickedObject, 'position', pickedObject[0].position, targetVec);
+                    setTargetPositionGroup(pickedObject, 'targetPosition', pickedObject[0].targetPosition, targetVec, 80);
 
                     pickedObject.forEach(o => o.unselect());
                     pickedObject.forEach(o => o.onDrop());
