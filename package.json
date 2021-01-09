@@ -6,13 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup --config",
-    "watch": "rollup --config --watch"
+    "watch": "rollup --config --watch",
+    "start": "rollup --config && http-server dist/client"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "binary-parser-encoder": "^1.5.3",
     "flatten-svg": "^0.2.1",
+    "http-server": "^0.12.3",
     "mithril": "^2.0.4",
     "node-gzip": "^1.1.2",
     "ramda": "^0.27.1",
