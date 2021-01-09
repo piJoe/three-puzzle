@@ -29,6 +29,7 @@ export class MergeGameObjectGroup extends Mesh {
             for (let i = 0; i < this.children.length; i++) {
                 const gameObject = this.children[i];
                 const bufferGeometry = gameObject.geometry.clone();
+                // @todo: apply targetposition before applying matrix?
                 bufferGeometry.applyMatrix4(gameObject.matrix);
                 const bufferSize = bufferGeometry.attributes.position.count;
                 gameObject.mergeOffset = offset;
