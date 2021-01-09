@@ -9,6 +9,9 @@ export class GameObject extends TweenObject {
         this.isFrozen = options.frozen ? options.frozen : false;
         this.isSelectable = options.selectable ? options.selectable : true;
 
+        this.isSelected = false;
+        this.isPicked = false;
+
         // this.parentGameObject = null;
         // @todo: group restlos entfernen. wird nicht benötigt. handling für puzzle pieces über eigenes PuzzlePieceObject sinnvoller (geo merging, position store etc.)
         this.group = null;
@@ -30,6 +33,7 @@ export class GameObject extends TweenObject {
     }
 
     updateSelectState(selected) {
+        this.isSelected = selected;
         if (this.selectMesh !== null) {
             this.selectMesh.visible = selected;
         }
@@ -73,10 +77,12 @@ export class GameObject extends TweenObject {
     }
 
     onPickUp(event) {
+        this.isPicked = true;
         // this.updateShadowState(true);
     }
 
     onDrop(event) {
+        this.isPicked = false;
         // window.setTimeout(() => {
         //         this.updateShadowState(false);
         //     }, 80,

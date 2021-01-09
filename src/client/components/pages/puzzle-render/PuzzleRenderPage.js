@@ -54,6 +54,8 @@ import { updateGlobalTime } from 'client/lib/engine/game/GlobalTime';
 import { GameObject } from 'client/lib/engine/game/GameObject';
 import { LayerDefintion } from 'client/lib/engine/layers';
 import { GameObjectMesh } from 'client/lib/engine/game/GameObjectMesh';
+import { MergeableGameObjectMesh } from 'client/lib/engine/game/MergeableGameObjectMesh';
+import { MergeGameObjectGroup } from 'client/lib/engine/game/MergeGameObjectGroup';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     // console.log(puzzleData, i);
@@ -98,7 +100,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             // console.log(puzzlePaths);
 
             const raycaster = new Raycaster();
-            raycaster.layers.set(1);
+            raycaster.layers.enableAll();
+            raycaster.layers.disable(LayerDefintion.IGNORE_RAYCAST);
 
             const mouse = new Vector2();
 
@@ -129,6 +132,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 500,
             );
             camera.layers.enableAll();
+            camera.layers.disable(LayerDefintion.INVISIBLE);
             // camera.layers.enable(0);
             // camera.layers.enable(1);
             // const camera = new OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0.01, 1000);
@@ -307,10 +311,12 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 puzzleData.pieceSize[0],
                 puzzleData.pieceSize[1],
             );
-            const pieceGeometries = [];
             const pieceMeshes = [];
-            let bufferOffset = 0;
             updateGlobalTime(performance.now());
+
+            const mergeGroup = new MergeGameObjectGroup(material);
+            scene.add(mergeGroup);
+
             for (let i = 0; i < puzzlePaths.length; i++) {
                 const puzzlePiece = puzzleData.pieces[i];
                 const shape = createShapeFromPath(puzzlePaths[i]);
@@ -323,8 +329,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // geometry.center();
                 geometry.rotateX(Math.PI / 2);
                 // geometry.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
-
-                pieceGeometries.push(geometry);
 
                 const outlineGeo = new SimpleExtrudeBufferGeometry(
                     shape,
@@ -342,7 +346,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     pieceMaxSize / 100,
                     0,
                 );
-                outlineMesh.layers.set(0);
+                outlineMesh.layers.set(LayerDefintion.DEFAULT);
                 outlineMesh.visible = false;
 
                 // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
@@ -355,7 +359,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     -0.0099,
                     0,
                 );
-                shadowMesh.layers.set(0);
+                shadowMesh.layers.set(LayerDefintion.DEFAULT);
                 shadowMesh.visible = false;
 
                 // const base = new GameObject({
@@ -368,21 +372,16 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // // mesh.receiveShadow = true;
                 // // mesh.visible = false;
                 // mesh.layers.set(1);
-                //
-                // mesh.bufferOffset = bufferOffset;
-                // bufferOffset += geometry.attributes.position.count;
-                //
-                // mesh.position.set(
-                //     -puzzleData.pieceSize[0] / 2,
-                //     0,
-                //     -puzzleData.pieceSize[1] / 2,
-                // );
 
-                const base = new GameObjectMesh(geometry, material, {
+                // const base = new GameObjectMesh(geometry, material, {
+                //     selectMesh: outlineMesh,
+                //     shadowMesh: shadowMesh,
+                // });
+                const base = new MergeableGameObjectMesh(mergeGroup, geometry, {
                     selectMesh: outlineMesh,
                     shadowMesh: shadowMesh,
                 });
-                base.layers.set(1);
+                base.layers.set(LayerDefintion.INTERACTABLE);
 
                 base.puzzleInfo = puzzlePiece;
                 // base.layers.set(1);
@@ -398,10 +397,9 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 base.targetPosition.copy(pos);
                 // console.log(base.position);
 
-                scene.add(base);
+                // scene.add(base);
                 pieceMeshes.push(base);
             }
-            console.log(pieceMeshes[0]);
 
             const dot = new SphereGeometry(0.002);
             const raycastMat = new MeshBasicMaterial({
@@ -409,7 +407,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             });
             const raycastPoint = new Mesh(dot, raycastMat);
             // raycastPoint.position.set(0,0.1,0);
-            raycastPoint.layers.set(9);
+            raycastPoint.layers.set(LayerDefintion.IGNORE_RAYCAST);
             raycastPoint.visible = false;
             scene.add(raycastPoint);
 
@@ -433,18 +431,9 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             });
             const connectLine = new LineSegments(connectGeo, connectMat);
             connectLine.name = 'Meine Line';
-            connectLine.layers.set(9);
+            connectLine.layers.set(LayerDefintion.IGNORE_RAYCAST);
             connectLine.frustumCulled = false;
             scene.add(connectLine);
-
-            // console.time('merge');
-            // const merged = BufferGeometryUtils.mergeBufferGeometries(pieceGeometries);
-            // console.timeEnd('merge');
-            // console.time('newmesh');
-            // const allMesh = new Mesh(merged, material);
-            // allMesh.castShadow = true;
-            // scene.add(allMesh);
-            // console.timeEnd('newmesh');
 
             const controls = new OrbitControls(camera, renderer.domElement);
             window.controls = controls;
@@ -483,92 +472,48 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 -1 + Math.random() * 2,
             );
 
-            // let delta100Ticks = 0;
-            // let tickCount = 0;
+            let delta100Ticks = 0;
+            let tickCount = 0;
+
             function animate(time) {
                 const d = updateGlobalTime(time);
-                // const tickStartTime = performance.now();
+                const tickStartTime = performance.now();
                 if (lastTime === 0) lastTime = time;
                 const delta = time - lastTime;
                 lastTime = time;
 
                 requestAnimationFrame(animate);
 
-                // currentTime += delta;
-                // if (currentTime > 60) { // switch to other object after 5 seconds
-                //     currentTime = 0;
-                //     console.time('update mesh');
-                //     // hide old piece, merge back into geometry array
-                //     const oldMesh = pieceMeshes[currentObject];
-                //     oldMesh.visible = false;
-                //     oldMesh.updateMatrix();
-                //     oldMesh.geometry.applyMatrix4( oldMesh.matrix );
-                //     oldMesh.matrix.identity();
-                //     oldMesh.position.set( 0, 0, 0 );
-                //     // update allMesh position
-                //     const oldArray = oldMesh.geometry.attributes.position.array;
-                //     const offset = oldMesh.bufferOffset;
-                //     const allArray = allMesh.geometry.attributes.position.array;
-                //     let i = 0;
-                //     while (i < oldArray.length) {
-                //         allArray[(i)+(offset*3)] = oldArray[i];
-                //         allArray[(i+1)+(offset*3)] = oldArray[i+1];
-                //         allArray[(i+2)+(offset*3)] = oldArray[i+2];
-                //         i+=3;
-                //     }
-                //     // set new piece, transforms, etc.
-                //     curTrans = new Vector3(-1 + Math.random()*2, 0, -1 + Math.random()*2);
-                //     if (currentObject+1 > pieceMeshes.length-1) {
-                //         currentObject = -1;
-                //     }
-                //     currentObject++;
-                //     pieceMeshes[currentObject].visible = true;
-                //     // set all vertices for current piece in allMesh to 0 (will not be visible)
-                //     i = pieceMeshes[currentObject].bufferOffset*3;
-                //     const endP = pieceMeshes[currentObject].bufferOffset*3 + pieceMeshes[currentObject].geometry.attributes.position.count*3;
-                //     while (i < endP) {
-                //         allArray[i] = 0;
-                //         allArray[i+1] = 0;
-                //         allArray[i+2] = 0;
-                //         i+=3;
-                //     }
-                //     allMesh.geometry.attributes.position.needsUpdate = true;
-                //     console.timeEnd('update mesh');
-                // }
-                // pieceMeshes[currentObject].translateOnAxis(curTrans, delta*0.5);
-                // hasChanged = true;
-
                 scene.traverse(obj => {
-                    (obj instanceof GameObject || obj instanceof TweenObject) ? obj.tick() : false;
+                    (obj instanceof TweenObject || obj instanceof MergeGameObjectGroup) ? obj.tick() : false;
                 });
 
                 raycaster.setFromCamera(mouse, camera);
 
                 // cast for virtual mouse pointer
-                if (pickedObject.length === 0) {
-                    raycaster.layers.enableAll();
-                    raycaster.layers.disable(LayerDefintion.IGNORE_RAYCAST);
-                    const intersect = raycaster.intersectObjects(
-                        scene.children,
-                        true,
-                    )[0];
-                    if (intersect) {
-                        raycastPoint.position.copy(intersect.point);
-                        // console.log(raycastPoint.position);
-                    }
-                }
+                // if (pickedObject.length === 0) {
+                //     raycaster.layers.enableAll();
+                //     raycaster.layers.disable(LayerDefintion.IGNORE_RAYCAST);
+                //     const intersect = raycaster.intersectObjects(
+                //         scene.children,
+                //         true,
+                //     )[0];
+                //     if (intersect) {
+                //         raycastPoint.position.copy(intersect.point);
+                //         // console.log(raycastPoint.position);
+                //     }
+                // }
 
                 // cast for picking up objects
                 if (pickedObject.length === 0) {
-                    raycaster.layers.set(1);
-                    const intersects = raycaster.intersectObjects(
-                        scene.children,
-                        // true,
-                    );
-                    if (intersects.length > 0) {
-                        // raycastPoint.position.copy(intersects[0].point);
-                        // console.log(mouse, intersects[0]);
-                        if (pickupDown) {
+                    if (pickupDown) {
+                        raycaster.layers.set(LayerDefintion.INTERACTABLE);
+                        const intersects = raycaster.intersectObjects(
+                            pieceMeshes,
+                        );
+                        if (intersects.length > 0) {
+                            // raycastPoint.position.copy(intersects[0].point);
+                            // console.log(mouse, intersects[0]);
                             const gObj = intersects[0].object;
                             pickedObject = gObj.select();
                             grabOffset.set(
@@ -590,7 +535,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 // we're actively dragging an object
                 if (pickupDown && pickedObject.length > 0) {
-                    raycaster.layers.set(0);
+                    raycaster.layers.set(LayerDefintion.DEFAULT);
                     const intersection = raycaster.intersectObject(planeM)[0];
                     if (intersection) {
                         const point = intersection.point;
@@ -703,15 +648,15 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     renderer.render(scene, camera);
                 }
                 hasChanged = false;
-                //
-                // const tickEndTime = performance.now();
-                // delta100Ticks += tickEndTime - tickStartTime;
-                // tickCount++;
-                // if (tickCount >= 100) {
-                //     console.log('last 100 ticks avg', delta100Ticks/100,'ms');
-                //     delta100Ticks = 0;
-                //     tickCount = 0;
-                // }
+
+                const tickEndTime = performance.now();
+                delta100Ticks += tickEndTime - tickStartTime;
+                tickCount++;
+                if (tickCount >= 100) {
+                    console.log('last 100 ticks avg', delta100Ticks / 100, 'ms');
+                    delta100Ticks = 0;
+                    tickCount = 0;
+                }
 
             }
 
