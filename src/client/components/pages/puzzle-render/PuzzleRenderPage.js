@@ -667,7 +667,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 delta100Ticks += tickEndTime - tickStartTime;
                 tickCount++;
                 if (tickCount >= 100) {
-                    console.log('last 100 ticks avg', delta100Ticks / 100, 'ms');
+                    // console.log('last 100 ticks avg', delta100Ticks / 100, 'ms');
                     delta100Ticks = 0;
                     tickCount = 0;
                 }

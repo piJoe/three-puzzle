@@ -11,7 +11,6 @@ export class MergeGameObjectGroup extends Mesh {
     add(...object) {
         super.add(...object);
         this.geometryNeedsUpdate = true;
-        console.log('add new object', object);
         return this;
     }
 
@@ -23,7 +22,6 @@ export class MergeGameObjectGroup extends Mesh {
 
     updateGeometryIfNeeded() {
         if (this.geometryNeedsUpdate) {
-            console.time('update merge geometry');
             const geometries = [];
             let offset = 0;
             for (let i = 0; i < this.children.length; i++) {
@@ -38,14 +36,12 @@ export class MergeGameObjectGroup extends Mesh {
             }
             this.geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
             this.geometryNeedsUpdate = false;
-            console.timeEnd('update merge geometry');
         }
     }
 
     hideVertices(gameObject) {
         this.updateGeometryIfNeeded();
 
-        console.log('hide vertices in mesh geometry');
         const offset = gameObject.mergeOffset * 3;
         const mergePositionArray = this.geometry.attributes.position.array;
 
@@ -58,7 +54,6 @@ export class MergeGameObjectGroup extends Mesh {
     updateVertices(gameObject) {
         this.updateGeometryIfNeeded();
 
-        console.log('update mesh geometry');
         const bufferGeometry = gameObject.geometry.clone().applyMatrix4(gameObject.matrix);
         const offset = gameObject.mergeOffset * 3;
         const newPositionArray = bufferGeometry.attributes.position.array;
