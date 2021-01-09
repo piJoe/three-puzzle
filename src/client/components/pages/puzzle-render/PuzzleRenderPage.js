@@ -56,6 +56,9 @@ import { LayerDefintion } from 'client/lib/engine/layers';
 import { GameObjectMesh } from 'client/lib/engine/game/GameObjectMesh';
 import { MergeableGameObjectMesh } from 'client/lib/engine/game/MergeableGameObjectMesh';
 import { MergeGameObjectGroup } from 'client/lib/engine/game/MergeGameObjectGroup';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     // console.log(puzzleData, i);
@@ -174,6 +177,20 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             renderer.setSize(window.innerWidth, window.innerHeight);
             canvasDOM.appendChild(renderer.domElement);
 
+            const composer = new EffectComposer( renderer );
+            const renderPass = new RenderPass( scene, camera );
+            composer.addPass( renderPass );
+            // const saoPass = new SAOPass( scene, camera, false, true );
+            // saoPass.params = {
+            //     ...saoPass.params,
+            //     saoBlurRadius: 2,
+            //     saoBlurStdDev: 2,
+            //     saoIntensity: 0.006,
+            //     saoKernelRadius: 4,
+            //     saoScale: 2,
+            // };
+            // composer.addPass( saoPass );
+
             const pmremGenerator = new PMREMGenerator(renderer);
             pmremGenerator.compileEquirectangularShader();
 
@@ -246,6 +263,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const outlineMat = new MeshBasicMaterial({
                 color: 0xff0000,
                 side: BackSide,
+                depthWrite: false,
             });
 
             loader.load('/resources/envmap.jpg', (map) => {
@@ -266,7 +284,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             });
             const fakeFullShadowMat = new MeshBasicMaterial({
                 transparent: true,
-                // depthWrite: false,
+                depthWrite: false,
                 opacity: 0.4,
                 color: 0x000000,
                 depthFunc: NeverDepth,
@@ -286,11 +304,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const planeM = new Mesh(plane, planeMaterial);
             planeM.receiveShadow = true;
             scene.add(planeM);
-
-            const shadowGeo = new PlaneBufferGeometry(
-                pieceMaxSize * 3,
-                pieceMaxSize * 3,
-            );
 
             const lastPiece = puzzleData.pieces[puzzleData.pieces.length - 1];
             const validPositions = createSpawnPositionsOutsideArea(
@@ -645,7 +658,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 hasChanged = true;
                 if (hasChanged) {
-                    renderer.render(scene, camera);
+                    // renderer.render(scene, camera);
+                    composer.render();
                 }
                 hasChanged = false;
 
@@ -664,6 +678,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 hasChanged = true;
             });
             renderer.render(scene, camera);
+            composer.render();
             requestAnimationFrame(animate);
         },
         onremove: () => {
