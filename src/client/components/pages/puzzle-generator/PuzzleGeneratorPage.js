@@ -144,6 +144,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
             puzzleImage: finalImageURL,
         };
         console.log(puzzleData);
+        m.route.set('/render');
     };
 
     return {
@@ -259,7 +260,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
                     ),
                     ' ',
                     m('input[type="button"]', {
-                        value: 'Generate',
+                        value: 'Generate and Run!',
                         onclick: generatePuzzle,
                     }),
                 ]),
