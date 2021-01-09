@@ -53,6 +53,7 @@ import {
 import { updateGlobalTime } from 'client/lib/engine/game/GlobalTime';
 import { GameObject } from 'client/lib/engine/game/GameObject';
 import { LayerDefintion } from 'client/lib/engine/layers';
+import { GameObjectMesh } from 'client/lib/engine/game/GameObjectMesh';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     // console.log(puzzleData, i);
@@ -337,10 +338,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 const outlineMesh = new Mesh(outlineGeo, outlineMat);
                 outlineMesh.name = 'outline';
                 outlineMesh.position.set(
-                    -puzzleData.pieceSize[0] / 2,
+                    0,
                     pieceMaxSize / 100,
-                    -puzzleData.pieceSize[1] / 2,
+                    0,
                 );
+                outlineMesh.layers.set(0);
                 outlineMesh.visible = false;
 
                 // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
@@ -349,33 +351,38 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // shadowMesh.rotateX(-Math.PI / 2);
                 // shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0098, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);
                 shadowMesh.position.set(
-                    -puzzleData.pieceSize[0] / 2,
+                    0,
                     -0.0099,
-                    -puzzleData.pieceSize[1] / 2,
+                    0,
                 );
+                shadowMesh.layers.set(0);
                 shadowMesh.visible = false;
 
-                const base = new GameObject({
+                // const base = new GameObject({
+                //     selectMesh: outlineMesh,
+                //     shadowMesh: shadowMesh,
+                // });
+
+                // const mesh = new Mesh(geometry, material);
+                // // mesh.castShadow = true;
+                // // mesh.receiveShadow = true;
+                // // mesh.visible = false;
+                // mesh.layers.set(1);
+                //
+                // mesh.bufferOffset = bufferOffset;
+                // bufferOffset += geometry.attributes.position.count;
+                //
+                // mesh.position.set(
+                //     -puzzleData.pieceSize[0] / 2,
+                //     0,
+                //     -puzzleData.pieceSize[1] / 2,
+                // );
+
+                const base = new GameObjectMesh(geometry, material, {
                     selectMesh: outlineMesh,
                     shadowMesh: shadowMesh,
                 });
-
-                const mesh = new Mesh(geometry, material);
-                // mesh.castShadow = true;
-                // mesh.receiveShadow = true;
-                // mesh.visible = false;
-                mesh.layers.set(1);
-
-                mesh.bufferOffset = bufferOffset;
-                bufferOffset += geometry.attributes.position.count;
-
-                mesh.position.set(
-                    -puzzleData.pieceSize[0] / 2,
-                    0,
-                    -puzzleData.pieceSize[1] / 2,
-                );
-
-                base.add(mesh);
+                base.layers.set(1);
 
                 base.puzzleInfo = puzzlePiece;
                 // base.layers.set(1);
@@ -387,9 +394,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     Math.floor(Math.random() * validPositions.length),
                     1,
                 )[0];
-                // base.position.set(pos.x, pos.y, pos.z);
-                // base.position.copy(pos);
-                base.moveToTargetPos(pos, 800);
+                base.position.copy(pos);
+                base.targetPosition.copy(pos);
                 // console.log(base.position);
 
                 scene.add(base);
@@ -557,13 +563,13 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     raycaster.layers.set(1);
                     const intersects = raycaster.intersectObjects(
                         scene.children,
-                        true,
+                        // true,
                     );
                     if (intersects.length > 0) {
                         // raycastPoint.position.copy(intersects[0].point);
                         // console.log(mouse, intersects[0]);
                         if (pickupDown) {
-                            const gObj = intersects[0].object.parent;
+                            const gObj = intersects[0].object;
                             pickedObject = gObj.select();
                             grabOffset.set(
                                 intersects[0].point.x - pickedObject[0].position.x,

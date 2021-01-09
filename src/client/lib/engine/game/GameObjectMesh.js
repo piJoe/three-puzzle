@@ -7,6 +7,7 @@ export class GameObjectMesh extends GameObject {
     constructor(geometry, material, options = {}) {
         super(options);
         this.type = 'Mesh';
+        this.isMesh = true;
 
         this.geometry = geometry !== undefined ? geometry : new BufferGeometry();
         this.material = material !== undefined ? material : new MeshBasicMaterial();
