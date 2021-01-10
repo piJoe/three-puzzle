@@ -177,6 +177,9 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             window.renderer = renderer;
 
             renderer.setSize(window.innerWidth, window.innerHeight);
+            window.addEventListener('resize', (e) =>
+                renderer.setSize(window.innerWidth, window.innerHeight)
+            );
             canvasDOM.appendChild(renderer.domElement);
 
             const composer = new EffectComposer( renderer );
