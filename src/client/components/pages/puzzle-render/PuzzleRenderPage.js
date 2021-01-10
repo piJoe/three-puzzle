@@ -45,7 +45,7 @@ import {
     createShapeFromPath,
     createSpawnPositionsOutsideArea,
 } from 'client/lib/engine/engine-utils';
-import { SimpleExtrudeBufferGeometry } from '../../../lib/engine/SimpleExtrudeBufferGeometry';
+import { SimpleExtrudeBufferGeometry } from 'client/lib/engine/SimpleExtrudeBufferGeometry';
 import {
     setTargetPositionGroup,
     TweenObject,
@@ -59,6 +59,7 @@ import { MergeGameObjectGroup } from 'client/lib/engine/game/MergeGameObjectGrou
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass';
+import { includes } from 'ramda';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     // console.log(puzzleData, i);
@@ -97,6 +98,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
         oncreate: (vnode) => {
             const canvasDOM = vnode.dom;
             console.log(vnode.dom);
+
 
             const puzzleData = store.puzzleData;
             const puzzlePaths = generatePuzzlePaths(puzzleData);
@@ -413,6 +415,17 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 // scene.add(base);
                 pieceMeshes.push(base);
             }
+
+            let onlyCorner = false;
+            window.toggleInnerPieces = function() {
+                onlyCorner = !onlyCorner;
+                pieceMeshes.forEach(p => {
+                    const isCornerPiece = includes(-1, p.puzzleInfo.neighbours);
+                    if (!isCornerPiece && p.visible === false) {
+                        onlyCorner ? mergeGroup.hideVertices(p) : mergeGroup.updateVertices(p);
+                    }
+                });
+            };
 
             const dot = new SphereGeometry(0.002);
             const raycastMat = new MeshBasicMaterial({
