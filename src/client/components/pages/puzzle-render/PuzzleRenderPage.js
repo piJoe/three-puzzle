@@ -178,13 +178,13 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             renderer.setSize(window.innerWidth, window.innerHeight);
             window.addEventListener('resize', (e) =>
-                renderer.setSize(window.innerWidth, window.innerHeight)
+                renderer.setSize(window.innerWidth, window.innerHeight),
             );
             canvasDOM.appendChild(renderer.domElement);
 
-            const composer = new EffectComposer( renderer );
-            const renderPass = new RenderPass( scene, camera );
-            composer.addPass( renderPass );
+            const composer = new EffectComposer(renderer);
+            const renderPass = new RenderPass(scene, camera);
+            composer.addPass(renderPass);
             // const saoPass = new SAOPass( scene, camera, false, true );
             // saoPass.params = {
             //     ...saoPass.params,
@@ -248,21 +248,30 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             });
             window.felt = planeMaterial;
 
-            const detailMap = loader.load(
-                '/resources/test_roughness.jpg',
-                (map) => {
-                    map.wrapS = RepeatWrapping;
-                    map.wrapT = RepeatWrapping;
-                    map.repeat.set(4, 4);
-                    map.needsUpdate = true;
-                },
-            );
+            // const detailMap = loader.load(
+            //     '/resources/test_roughness_2.png',
+            //     (map) => {
+            //         map.wrapS = RepeatWrapping;
+            //         map.wrapT = RepeatWrapping;
+            //         map.repeat.set(64,64);
+            //         map.needsUpdate = true;
+            //     },
+            // );
+            // const detailBumpMap = loader.load(
+            //     '/resources/test_bump_2.png',
+            //     (map) => {
+            //         map.wrapS = RepeatWrapping;
+            //         map.wrapT = RepeatWrapping;
+            //         map.repeat.set(64,64);
+            //         map.needsUpdate = true;
+            //     },
+            // );
             const material = new MeshStandardMaterial({
                 map: loader.load(puzzleData.puzzleImage),
-                roughnessMap: detailMap,
-                roughness: 0.98,
-                bumpMap: detailMap,
-                bumpScale: 0.0002,
+                // roughnessMap: detailMap,
+                roughness: 0.9,
+                // bumpMap: detailBumpMap,
+                bumpScale: 0.0001,
             });
 
             const outlineMat = new MeshBasicMaterial({
