@@ -19,7 +19,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
 
     const updateImage = (files) => {
         const images = [...files].filter(({ type }) =>
-            type.startsWith('image/')
+            type.startsWith('image/'),
         );
         if (images.length > 0) {
             imageSrc = URL.createObjectURL(images[0]);
@@ -44,7 +44,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
         updateImage(
             [...e.clipboardData.items]
                 .map((i) => i.getAsFile())
-                .filter((f) => f !== null)
+                .filter((f) => f !== null),
         );
         m.redraw();
     };
@@ -96,7 +96,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
 
         console.log(
             (finalImage.size / 1024 / 1024).toFixed(2) + 'MB',
-            finalImageURL
+            finalImageURL,
         );
         return {
             blob: finalImage,
@@ -150,7 +150,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
     return {
         oncreate: (vnode) => {
             puzzleContainerDOM = vnode.dom.querySelector(
-                '.puzzle-gen-image-container'
+                '.puzzle-gen-image-container',
             );
             imageDOM = vnode.dom.querySelector('.puzzle-gen-image');
 
@@ -165,17 +165,16 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
             document.removeEventListener('paste', pasteEvent);
         },
 
-        view: function () {
+        view: function() {
             return [
-                m(
-                    '.puzzle-gen-cover',
+                m('.puzzle-gen-cover',
                     {
                         onpaste: (e) => {
                             e.preventDefault();
                             updateImage(
                                 [...e.clipboardData.items]
                                     .map((i) => i.getAsFile())
-                                    .filter((f) => f !== null)
+                                    .filter((f) => f !== null),
                             );
                         },
                     },
@@ -185,8 +184,7 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
                             pieceCount,
                             ' pieces)',
                         ]),
-                        m(
-                            '.puzzle-gen-image-container',
+                        m('.puzzle-gen-image-container',
                             {
                                 class:
                                     dragging > 0
@@ -219,22 +217,21 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
                                 ]),
                                 m('img.puzzle-gen-image', {
                                     src: imageSrc,
-                                    onload: function () {
+                                    onload: function() {
                                         resizeImageContainer(
-                                            this.getBoundingClientRect()
+                                            this.getBoundingClientRect(),
                                         );
                                     },
                                 }),
-                            ]
+                            ],
                         ),
                         m('.puzzle-gen-cover-label', 'Raoulensburger'),
-                    ]
+                    ],
                 ),
 
                 m('.puzzle-gen-controls', [
                     'Pieces: ',
-                    m(
-                        'select',
+                    m('select',
                         {
                             onchange: (e) => updatePieceCount(e.target.value),
                         },
@@ -255,8 +252,8 @@ export const PuzzleGeneratorPage = function PuzzleGeneratorPage() {
                             // @todo: figure out sane values for piece sizes relative to total piece count
                             // (500-1000 pieces = ~ 2*2cm, 200-400 = ~ 3*3cm, 50-100 = ~4*4cm)
                         ].map((val) =>
-                            m('option', { selected: val === pieceCount }, val)
-                        )
+                            m('option', { selected: val === pieceCount }, val),
+                        ),
                     ),
                     ' ',
                     m('input[type="button"]', {
