@@ -1,10 +1,12 @@
 import { TweenObject } from 'client/lib/engine/game/TweenObject';
 import { LayerDefintion } from 'client/lib/engine/layers';
+import { ObjectTypes } from 'client/lib/engine/objectTypes';
 
 export class GameObject extends TweenObject {
     constructor(options = {}) {
         super();
         this.name = options.name ? options.name : 'GameObject';
+        this.objectType = ObjectTypes.GENERIC;
 
         this.isFrozen = options.frozen ? options.frozen : false;
         this.isSelectable = options.selectable ? options.selectable : true;
