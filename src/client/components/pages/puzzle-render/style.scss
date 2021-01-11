@@ -23,6 +23,8 @@
   cursor: default;
   user-select: none;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  border-radius: 6px;
 
   position: absolute;
   top: 560px;
