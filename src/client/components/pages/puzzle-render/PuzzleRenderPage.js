@@ -711,8 +711,23 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
         onremove: () => {
         },
         view: function() {
-            return m('.main', [
+            return m('.game-main', [
                 m('.game-canvas'),
+                m('.game-overlay', [
+                    m('.game-context-menu', [
+                        m('.game-menu-head', [
+                            m('.game-menu-title', 'Objektname hier'),
+                            m('pre.game-menu-stats', 'Hier stehen dann\ndie richtig guten Stats'),
+                        ]),
+                        m('.game-menu-items', [
+                            m('a.game-menu-item', 'Freeze'),
+                            m('a.game-menu-item', 'Delete'),
+                            m('a.game-menu-item', 'Bla'),
+                            m('a.game-menu-item', 'Spawn Puzzle'),
+                        ]),
+                    ]),
+
+                ]),
             ]);
         },
     };

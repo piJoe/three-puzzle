@@ -6,3 +6,51 @@
     outline: 0;
   }
 }
+
+.game-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.game-context-menu {
+  width: max-content;
+  background: #181818;
+  color: #fff;
+  cursor: default;
+  user-select: none;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+
+  position: absolute;
+  top: 560px;
+  left: 950px;
+}
+
+.game-menu-head {
+  background: #111111;
+  padding: 20px;
+}
+
+.game-menu-title {
+  font-weight: bold;
+}
+
+.game-menu-stats {
+  margin: 16px 0 0 0;
+}
+
+.game-menu-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-menu-item {
+  padding: 12px 20px;
+
+  &:hover {
+    background: rgba(255,255,255,0.1);
+  }
+}
