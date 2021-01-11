@@ -96,7 +96,7 @@ const PuzzleUVGenerator = (puzzleData, i) => {
 export const PuzzleRenderPage = function PuzzleRenderPage() {
     return {
         oncreate: (vnode) => {
-            const canvasDOM = vnode.dom;
+            const canvasDOM = vnode.dom.querySelector('.game-canvas');
             console.log(vnode.dom);
 
 
@@ -177,9 +177,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             window.renderer = renderer;
 
             renderer.setSize(window.innerWidth, window.innerHeight);
-            window.addEventListener('resize', (e) =>
-                renderer.setSize(window.innerWidth, window.innerHeight),
-            );
+            window.addEventListener('resize', (e) => {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+            });
             canvasDOM.appendChild(renderer.domElement);
 
             const composer = new EffectComposer(renderer);
@@ -709,7 +711,9 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
         onremove: () => {
         },
         view: function() {
-            return m('.puzzle-canvas');
+            return m('.main', [
+                m('.game-canvas'),
+            ]);
         },
     };
 };
