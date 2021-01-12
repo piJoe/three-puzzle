@@ -3,18 +3,22 @@ import { svgPathBbox } from 'svg-path-bbox';
 import svgpath from 'svgpath';
 import { flattenSVG } from 'flatten-svg';
 import { Vector3 } from 'three';
+
 const utils = new SVGPathUtils();
 
 let pieces = [];
 var seed = 1;
+
 // function random() { var x = Math.sin(seed) * 10000; seed += 1; return x - Math.floor(x); }
 function random() {
     return Math.random();
 }
+
 function uniform(min, max) {
     var r = random();
     return min + r * (max - min);
 }
+
 function rbool() {
     return random() > 0.5;
 }
@@ -43,10 +47,12 @@ var a,
     midVar,
     nipW,
     nipVar;
+
 function first() {
     e = uniform(-j, j);
     next();
 }
+
 function next() {
     var flipold = flip;
     flip = rbool();
@@ -62,24 +68,30 @@ function next() {
     mid2 = uniform(0.5 - midVar, 0.5 + midVar);
     nipW = uniform(-nipVar, nipVar);
 }
+
 // function next() { var flipold = flip; flip = rbool(); a = (flip == flipold ? -e : e); b = uniform(-j, j); c = uniform(-j, j); d = uniform(-j, j); e = uniform(-j, j); }
 function sl() {
     return vertical ? height / yn : width / xn;
 }
+
 function sw() {
     return vertical ? width / xn : height / yn;
 }
+
 function ol() {
     return sl() * (vertical ? yi : xi);
 }
+
 function ow() {
     return sw() * (vertical ? xi : yi);
 }
+
 // function l(v) { var ret = ol() + sl() * v; return Math.round(ret * 100) / 100; }
 function l(v) {
     var ret = ol() + sl() * v;
     return Math.round(ret * 100) / 100;
 }
+
 function w(v) {
     var ret = ow() + sw() * v * (flip ? -1.0 : 1.0);
     return Math.round(ret * 100) / 100;
@@ -109,6 +121,7 @@ function w(v) {
 function p0l() {
     return l(0.0);
 }
+
 function p0w() {
     return w(0.0);
 }
@@ -116,6 +129,7 @@ function p0w() {
 function p1l() {
     return l(0.2 - Math.abs(mid / 10));
 }
+
 function p1w() {
     return w(a);
 }
@@ -123,6 +137,7 @@ function p1w() {
 function p2l() {
     return l(mid + b + d);
 }
+
 function p2w() {
     return w(-t + c);
 }
@@ -130,6 +145,7 @@ function p2w() {
 function p3l() {
     return l(mid - t * 0.6 + b);
 }
+
 function p3w() {
     return w(t * 0.6 + c);
 }
@@ -137,6 +153,7 @@ function p3w() {
 function p4l() {
     return l(mid - (2.6 + nipW) * t + b - d);
 }
+
 function p4w() {
     return w((3.0 + nipW) * t + c);
 }
@@ -144,6 +161,7 @@ function p4w() {
 function p5l() {
     return l(mid2 + (2.6 + nipW) * t2 + b - d);
 }
+
 function p5w() {
     return w((3.0 + nipW) * t2 + c2);
 }
@@ -151,6 +169,7 @@ function p5w() {
 function p6l() {
     return l(mid2 + t2 * 0.6 + b);
 }
+
 function p6w() {
     return w(t2 * 0.6 + c2);
 }
@@ -158,6 +177,7 @@ function p6w() {
 function p7l() {
     return l(mid + b + d);
 }
+
 function p7w() {
     return w(-t2 + c2);
 }
@@ -165,6 +185,7 @@ function p7w() {
 function p8l() {
     return l(0.8 + Math.abs(mid2 / 10));
 }
+
 function p8w() {
     return w(e);
 }
@@ -172,6 +193,7 @@ function p8w() {
 function p9l() {
     return l(1.0);
 }
+
 function p9w() {
     return w(0.0);
 }
@@ -368,6 +390,7 @@ function gen_dv() {
 }
 
 const ROUND_PRECISION = 3;
+
 function roundNumber(n) {
     // return n;
     const power = Math.pow(10, ROUND_PRECISION);
@@ -445,7 +468,7 @@ export const generatePuzzleData = function generatePuzzleData(config) {
                     removeM(c2) +
                     ' ' +
                     removeM(r2)
-                ).trim() + ' Z'
+                ).trim() + ' Z',
             )
                 .translate(-(y * pW), -(x * pH))
                 .scale(1 / pW, 1 / pH)
@@ -602,7 +625,7 @@ export const generatePuzzleData = function generatePuzzleData(config) {
 export const generatePuzzlePaths = function generatePuzzlePaths(
     puzzle,
     quality = 75,
-    workingDOM = document.body
+    workingDOM = document.body,
 ) {
     const { pieces, pieceSize } = puzzle;
 
@@ -621,7 +644,7 @@ export const generatePuzzlePaths = function generatePuzzlePaths(
 
         const p = document.createElementNS(
             'http://www.w3.org/2000/svg',
-            'path'
+            'path',
         );
 
         p.setAttribute('d', piece.path);
@@ -638,6 +661,47 @@ export const generatePuzzlePaths = function generatePuzzlePaths(
     svg.remove();
 
     return cleanPaths;
+};
+
+export const generatePuzzleBoxTexture = async function generatePuzzleBoxTexture(puzzleData, puzzleImage, boxSize) {
+    //@todo: add other sides, use correct margin for image!
+    const width = Math.ceil(boxSize.x * 2000);
+    const height = Math.ceil(boxSize.y * 2000);
+    const depth = Math.ceil(boxSize.z * 2000);
+
+    const totalWidth = width + depth * 2;
+    const totalHeight = height + depth * 2;
+
+    //@todo: fix margin (must *not* be based solely on width)
+    const imageMargin = width * 0.05;
+    const imageWidth = width - imageMargin*2;
+    const imageHeight = height - imageMargin*2;
+
+    /** setup */
+    const c = new OffscreenCanvas(totalWidth, totalHeight);
+    const ctx = c.getContext('2d');
+
+    /** faces in form x, y, width, height */
+    const top = [depth, depth, width, height];
+    //@todo: define remaining faces
+
+    /** colors */
+    const bgGradient = ctx.createLinearGradient(top[0], top[1], top[0], top[1] + top[3]);
+    bgGradient.addColorStop(0, '#bdcfeb');
+    bgGradient.addColorStop(1, '#838bb5');
+
+    /** draw top */
+    ctx.fillStyle = bgGradient;
+    ctx.fillRect(...top);
+    ctx.drawImage(puzzleImage, top[0]+imageMargin, top[1]+imageMargin, imageWidth, imageHeight);
+
+    //@todo: render remaining faces
+
+    const blob = await c.convertToBlob({
+        type: 'image/jpeg',
+        quality: 0.9,
+    });
+    return URL.createObjectURL(blob);
 };
 
 export const NEIGHBOUR_SIDES = {

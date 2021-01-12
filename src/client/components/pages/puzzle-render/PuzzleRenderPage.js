@@ -37,7 +37,7 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
-    createNeighbourOffsets,
+    createNeighbourOffsets, generatePuzzleBoxTexture,
     generatePuzzlePaths,
     NEIGHBOUR_SIDES,
 } from 'client/lib/puzzle/puzzle-utils';
@@ -269,8 +269,18 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             //         map.needsUpdate = true;
             //     },
             // );
+
+            const boxMaterial = new MeshStandardMaterial({});
+            const boxDepth = Math.max(0.03, Math.min(0.07, puzzleData.pieces.length / 10000));
+
+            const puzzleTexture = loader.load(puzzleData.puzzleImage, async (map) => {
+                const boxImage = await generatePuzzleBoxTexture(puzzleData, map.image, new Vector3(puzzleData.width, puzzleData.height, boxDepth));
+                boxMaterial.map = loader.load(boxImage);
+                boxMaterial.needsUpdate = true;
+            });
+
             const material = new MeshStandardMaterial({
-                map: loader.load(puzzleData.puzzleImage),
+                map: puzzleTexture,
                 // roughnessMap: detailMap,
                 roughness: 0.9,
                 // bumpMap: detailBumpMap,
@@ -337,16 +347,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 );
             });
 
-            const boxMaterial = new MeshStandardMaterial({
-                map: loader.load('/resources/bla_box.png')
-            });
-
-            const boxDepth = Math.max(0.04, Math.min(0.08, puzzleData.pieces.length/9000));
             const puzzleBoxGeo = new UVBoxBufferGeometry(puzzleData.width, puzzleData.height, boxDepth);
             puzzleBoxGeo.center();
             puzzleBoxGeo.rotateX(-Math.PI / 2);
             const puzzleBox = new GameObjectMesh(puzzleBoxGeo, boxMaterial);
-            const boxPos = new Vector3(lastPiece.x*puzzleData.pieceSize[0]*1.6/2, boxDepth/2, lastPiece.y*puzzleData.pieceSize[1]*1.6/2);
+            const boxPos = new Vector3(lastPiece.x * puzzleData.pieceSize[0] * 1.6 / 2, boxDepth / 2, lastPiece.y * puzzleData.pieceSize[1] * 1.6 / 2);
             puzzleBox.position.copy(boxPos);
             puzzleBox.targetPosition.copy(boxPos);
             scene.add(puzzleBox);
@@ -729,6 +734,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             return m('.game-main', [
                 m('.game-canvas'),
                 m('.game-overlay', [
+                    m('img.debug-image'),
                     m('.game-context-menu', [
                         m('.game-menu-head', [
                             m('.game-menu-title', 'Objektname hier'),
