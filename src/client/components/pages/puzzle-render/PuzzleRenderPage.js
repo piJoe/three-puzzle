@@ -7,25 +7,18 @@ import {
     PerspectiveCamera,
     WebGLRenderer,
     Mesh,
-    Shape,
     Vector2,
-    OrthographicCamera,
     TextureLoader,
     MeshStandardMaterial,
-    AmbientLight,
     DirectionalLight,
-    MathUtils,
     PlaneGeometry,
     Vector3,
-    ExtrudeBufferGeometry,
-    WireframeGeometry,
     LineSegments,
     Raycaster,
     Geometry,
     SphereGeometry,
     RepeatWrapping,
     MeshBasicMaterial,
-    PlaneBufferGeometry,
     PMREMGenerator,
     MOUSE,
     BackSide,
@@ -51,14 +44,12 @@ import {
     TweenObject,
 } from 'client/lib/engine/game/TweenObject';
 import { updateGlobalTime } from 'client/lib/engine/game/GlobalTime';
-import { GameObject } from 'client/lib/engine/game/GameObject';
 import { LayerDefintion } from 'client/lib/engine/layers';
 import { GameObjectMesh } from 'client/lib/engine/game/GameObjectMesh';
 import { MergeableGameObjectMesh } from 'client/lib/engine/game/MergeableGameObjectMesh';
 import { MergeGameObjectGroup } from 'client/lib/engine/game/MergeGameObjectGroup';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass';
 import { includes } from 'ramda';
 import { UVBoxBufferGeometry } from 'client/lib/engine/UVBoxBufferGeometry';
 
