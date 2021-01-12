@@ -60,6 +60,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass';
 import { includes } from 'ramda';
+import { UVBoxBufferGeometry } from 'client/lib/engine/UVBoxBufferGeometry';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     // console.log(puzzleData, i);
@@ -335,6 +336,20 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     puzzleData.pieceSize[1] * p.y * 1.6,
                 );
             });
+
+            const boxMaterial = new MeshStandardMaterial({
+                map: loader.load('/resources/bla_box.png')
+            });
+
+            const boxDepth = Math.max(0.04, Math.min(0.08, puzzleData.pieces.length/9000));
+            const puzzleBoxGeo = new UVBoxBufferGeometry(puzzleData.width, puzzleData.height, boxDepth);
+            puzzleBoxGeo.center();
+            puzzleBoxGeo.rotateX(-Math.PI / 2);
+            const puzzleBox = new GameObjectMesh(puzzleBoxGeo, boxMaterial);
+            const boxPos = new Vector3(lastPiece.x*puzzleData.pieceSize[0]*1.6/2, boxDepth/2, lastPiece.y*puzzleData.pieceSize[1]*1.6/2);
+            puzzleBox.position.copy(boxPos);
+            puzzleBox.targetPosition.copy(boxPos);
+            scene.add(puzzleBox);
 
             const neighbourOffsets = createNeighbourOffsets(
                 puzzleData.pieceSize[0],
