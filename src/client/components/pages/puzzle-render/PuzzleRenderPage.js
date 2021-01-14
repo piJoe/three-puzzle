@@ -54,8 +54,6 @@ import { includes } from 'ramda';
 import { UVBoxBufferGeometry } from 'client/lib/engine/UVBoxBufferGeometry';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
-    // console.log(puzzleData, i);
-
     const { pieceSize, width, height } = puzzleData;
     const piece = puzzleData.pieces[i];
 
@@ -108,9 +106,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             );
             camera.layers.enableAll();
             camera.layers.disable(LayerDefintion.INVISIBLE);
-            // camera.layers.enable(0);
-            // camera.layers.enable(1);
-            // const camera = new OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0.01, 1000);
 
             const mouse = new Vector3(0, 0, 0.5);
 
@@ -143,7 +138,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             let grabOffset = new Vector2();
 
             function key(k, isDown) {
-                // if (k.toLowerCase() === 'f') pickupDown = isDown;
                 if (k === 0) pickupDown = isDown;
             }
 
@@ -311,13 +305,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 pmremGenerator.dispose();
             });
 
-            const fakeShadowMat = new MeshBasicMaterial({
-                map: loader.load('/resources/shadowmap.png'),
-                transparent: true,
-                depthWrite: false,
-                side: BackSide,
-                opacity: 0.5,
-            });
             const fakeFullShadowMat = new MeshBasicMaterial({
                 transparent: true,
                 depthWrite: false,
@@ -420,21 +407,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 shadowMesh.layers.set(LayerDefintion.DEFAULT);
                 shadowMesh.visible = false;
 
-                // const base = new GameObject({
-                //     selectMesh: outlineMesh,
-                //     shadowMesh: shadowMesh,
-                // });
-
-                // const mesh = new Mesh(geometry, material);
-                // // mesh.castShadow = true;
-                // // mesh.receiveShadow = true;
-                // // mesh.visible = false;
-                // mesh.layers.set(1);
-
-                // const base = new GameObjectMesh(geometry, material, {
-                //     selectMesh: outlineMesh,
-                //     shadowMesh: shadowMesh,
-                // });
                 const base = new MergeableGameObjectMesh(mergeGroup, geometry, {
                     selectMesh: outlineMesh,
                     shadowMesh: shadowMesh,
@@ -530,26 +502,12 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             camera.lookAt(0, 0, 0);
             controls.update();
 
-            let hasChanged = false;
-            let lastTime = 0;
-
-            let currentObject = 0;
-            let currentTime = 0;
-            let curTrans = new Vector3(
-                -1 + Math.random() * 2,
-                0,
-                -1 + Math.random() * 2,
-            );
-
             let delta100Ticks = 0;
             let tickCount = 0;
 
             function animate(time) {
-                const d = updateGlobalTime(time);
+                updateGlobalTime(time);
                 const tickStartTime = performance.now();
-                if (lastTime === 0) lastTime = time;
-                const delta = time - lastTime;
-                lastTime = time;
 
                 requestAnimationFrame(animate);
 
@@ -719,13 +677,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 scene.traverse(obj => {
                     (obj instanceof TweenObject || obj instanceof MergeGameObjectGroup) ? obj.tick() : false;
                 });
-
-                hasChanged = true;
-                if (hasChanged) {
-                    // renderer.render(scene, camera);
-                    composer.render();
-                }
-                hasChanged = false;
+                composer.render();
 
                 const tickEndTime = performance.now();
                 delta100Ticks += tickEndTime - tickStartTime;
@@ -738,9 +690,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             }
 
-            controls.addEventListener('change', () => {
-                hasChanged = true;
-            });
             renderer.render(scene, camera);
             composer.render();
             requestAnimationFrame(animate);
