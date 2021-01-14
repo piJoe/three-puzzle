@@ -100,11 +100,40 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             raycaster.layers.enableAll();
             raycaster.layers.disable(LayerDefintion.IGNORE_RAYCAST);
 
-            const mouse = new Vector2();
+            const camera = new PerspectiveCamera(
+                50,
+                window.innerWidth / window.innerHeight,
+                0.001,
+                500,
+            );
+            camera.layers.enableAll();
+            camera.layers.disable(LayerDefintion.INVISIBLE);
+            // camera.layers.enable(0);
+            // camera.layers.enable(1);
+            // const camera = new OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0.01, 1000);
+
+            const mouse = new Vector3(0, 0, 0.5);
+
+            const mouseVec = new Vector3(0, 0, 0);
+            const mousePos = new Vector3(0, 0, 0);
+            const cameraWorldPos = new Vector3();
+
+            const pickHeight = 0.01;
 
             function onMouseMove(event) {
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                camera.getWorldPosition(cameraWorldPos);
+                mouseVec.set(
+                    mouse.x,
+                    mouse.y,
+                    0.5,
+                ).unproject(camera);
+                mouseVec.sub(cameraWorldPos).normalize();
+
+                const distance = (pickHeight - cameraWorldPos.y) / mouseVec.y;
+                mousePos.copy(cameraWorldPos).add(mouseVec.multiplyScalar(distance));
             }
 
             window.addEventListener('pointermove', onMouseMove);
@@ -122,17 +151,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             window.addEventListener('pointerup', (e) => key(e.button, false));
 
             const scene = new Scene();
-            const camera = new PerspectiveCamera(
-                50,
-                window.innerWidth / window.innerHeight,
-                0.001,
-                500,
-            );
-            camera.layers.enableAll();
-            camera.layers.disable(LayerDefintion.INVISIBLE);
-            // camera.layers.enable(0);
-            // camera.layers.enable(1);
-            // const camera = new OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 0.01, 1000);
 
             const listener = new AudioListener();
             camera.add(listener);
@@ -535,10 +553,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 requestAnimationFrame(animate);
 
-                scene.traverse(obj => {
-                    (obj instanceof TweenObject || obj instanceof MergeGameObjectGroup) ? obj.tick() : false;
-                });
-
                 raycaster.setFromCamera(mouse, camera);
 
                 // cast for virtual mouse pointer
@@ -567,9 +581,13 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             // console.log(mouse, intersects[0]);
                             const gObj = intersects[0].object;
                             pickedObject = gObj.select();
+                            // grabOffset.set(
+                            //     intersects[0].point.x - pickedObject[0].position.x,
+                            //     intersects[0].point.z - pickedObject[0].position.z,
+                            // );
                             grabOffset.set(
-                                intersects[0].point.x - pickedObject[0].position.x,
-                                intersects[0].point.z - pickedObject[0].position.z,
+                                mousePos.x - pickedObject[0].position.x,
+                                mousePos.z - pickedObject[0].position.z,
                             );
                             pickedObject.forEach(o => {
                                 o.onPickUp();
@@ -591,10 +609,15 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     if (intersection) {
                         const point = intersection.point;
 
+                        // const targetVec = new Vector3(
+                        //     point.x - grabOffset.x,
+                        //     0.01,
+                        //     point.z - grabOffset.y,
+                        // );
                         const targetVec = new Vector3(
-                            point.x - grabOffset.x,
+                            mousePos.x - grabOffset.x,
                             0.01,
-                            point.z - grabOffset.y,
+                            mousePos.z - grabOffset.y,
                         );
                         setTargetPositionGroup(pickedObject, 'targetPosition', pickedObject[0].targetPosition, targetVec, 0);
 
@@ -693,6 +716,9 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     connectLine.geometry.verticesNeedUpdate = true;
                 }
 
+                scene.traverse(obj => {
+                    (obj instanceof TweenObject || obj instanceof MergeGameObjectGroup) ? obj.tick() : false;
+                });
 
                 hasChanged = true;
                 if (hasChanged) {

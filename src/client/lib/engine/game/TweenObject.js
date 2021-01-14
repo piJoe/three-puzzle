@@ -44,7 +44,9 @@ export class TweenObject extends Object3D {
 
     updatePositionAxis(axis, time) {
         if (this.startTimePos[axis] === -1) return false;
-        const alpha = (time - this.startTimePos[axis]) / this.animDurationPos[axis];
+        const alpha = this.animDurationPos[axis] === 0
+            ? 1 // always force 1 as alpha when duration is zero
+            : (time - this.startTimePos[axis]) / this.animDurationPos[axis];
 
         if (alpha >= 1.0 || this.startPosition[axis] === this.targetPosition[axis]) {
             this.position[axis] = this.targetPosition[axis];
@@ -95,7 +97,6 @@ export function setTargetPositionGroup(group, propName, anchor, targetVec, durat
         obj.moveToTargetPos(pos.clone().add(relVec), duration);
     }
 }
-
 
 
 function updateAxis(axis, inVec, outVec) {
