@@ -119,6 +119,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
+                //@todo: check unprojection (probably needs to be referenced by WORLD position AND rotation)
                 camera.getWorldPosition(cameraWorldPos);
                 mouseVec.set(
                     mouse.x,
@@ -127,6 +128,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 ).unproject(camera);
                 mouseVec.sub(cameraWorldPos).normalize();
 
+                //@todo: should be .z for camerapos and mouseVec
                 const distance = (pickHeight - cameraWorldPos.y) / mouseVec.y;
                 mousePos.copy(cameraWorldPos).add(mouseVec.multiplyScalar(distance));
             }
