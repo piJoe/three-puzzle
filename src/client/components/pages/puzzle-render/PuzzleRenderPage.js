@@ -327,7 +327,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             puzzleBox.targetPosition.copy(boxPos);
             scene.add(puzzleBox);
 
-            const neighbourOffsets = createNeighbourOffsets(
+            puzzleData.neighbourOffsets = createNeighbourOffsets(
                 puzzleData.pieceSize[0],
                 puzzleData.pieceSize[1],
             );
@@ -342,7 +342,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 const base = new PuzzlePiece(puzzleData, i);
 
                 const puzzlePiece = puzzleData.pieces[i];
-                base.puzzleInfo = puzzlePiece;
                 // base.layers.set(1);
 
                 // base.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
@@ -461,9 +460,10 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     if (pickupDown) {
                         raycaster.layers.set(LayerDefintion.INTERACTABLE);
                         const intersects = raycaster.intersectObjects(
-                            pieceMeshes,
+                            scene.children,
+                            true
                         );
-                        console.log(intersects);
+                        // console.log(intersects);
                         if (intersects.length > 0) {
                             // raycastPoint.position.copy(intersects[0].point);
                             // console.log(mouse, intersects[0]);
@@ -538,56 +538,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                     pickedObject.forEach(o => o.unselect());
                     pickedObject.forEach(o => o.onDrop());
-
-                    pickedObject.forEach(gObj => {
-                        for (
-                            let i = 0;
-                            i < gObj.puzzleInfo.neighbours.length;
-                            i++
-                        ) {
-                            const neighbourNo =
-                                gObj.puzzleInfo.neighbours[i];
-                            if (neighbourNo < 0) {
-                                continue;
-                            }
-
-
-                            const neighbour = pieceMeshes[neighbourNo];
-                            const selfOffset = neighbourOffsets[i];
-                            const neighbourOffset = neighbourOffsets[(i + 2) % 4];
-
-                            if (gObj.sameGroup(neighbour)) {
-                                continue;
-                            }
-
-                            const selfPos = gObj.targetPosition
-                                .clone()
-                                .add(selfOffset);
-                            const neighbourPos = (neighbour.targetPosition ? neighbour.targetPosition : neighbour.position)
-                                .clone()
-                                .add(neighbourOffset);
-                            const distance = selfPos.distanceTo(neighbourPos);
-                            //@todo: iterate through all neighbours distances, closest distance wins snapping
-
-                            if (distance < selfOffset.length() / 2) {
-                                gObj.addGroup(neighbour);
-                                clickSound.play();
-                                console.log(
-                                    '*CLICK*',
-                                    NEIGHBOUR_SIDES.getSideName(i),
-                                    distance,
-                                );
-                                const newPos = (neighbour.targetPosition ? neighbour.targetPosition : neighbour.position)
-                                    .clone()
-                                    .add(neighbourOffset)
-                                    .sub(selfOffset);
-
-                                setTargetPositionGroup(pickedObject, 'position', gObj.position, newPos);
-                                break;
-                            }
-                        }
-                    });
-
 
                     pickedObject = [];
 

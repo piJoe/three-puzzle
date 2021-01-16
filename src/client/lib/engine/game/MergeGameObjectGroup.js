@@ -5,6 +5,7 @@ import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtil
 export class MergeGameObjectGroup extends Mesh {
     constructor(material) {
         super(new BufferGeometry(), material);
+        this.name = 'Merge Group';
         this.geometryNeedsUpdate = false;
     }
 
