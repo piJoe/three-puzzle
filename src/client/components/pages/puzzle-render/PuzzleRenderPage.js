@@ -38,7 +38,6 @@ import {
     createShapeFromPath,
     createSpawnPositionsOutsideArea,
 } from 'client/lib/engine/engine-utils';
-import { SimpleExtrudeBufferGeometry } from 'client/lib/engine/SimpleExtrudeBufferGeometry';
 import {
     setTargetPositionGroup,
     TweenObject,
@@ -46,44 +45,12 @@ import {
 import { updateGlobalTime } from 'client/lib/engine/game/GlobalTime';
 import { LayerDefintion } from 'client/lib/engine/layers';
 import { GameObjectMesh } from 'client/lib/engine/game/GameObjectMesh';
-import { MergeableGameObjectMesh } from 'client/lib/engine/game/MergeableGameObjectMesh';
 import { MergeGameObjectGroup } from 'client/lib/engine/game/MergeGameObjectGroup';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { includes } from 'ramda';
 import { UVBoxBufferGeometry } from 'client/lib/engine/UVBoxBufferGeometry';
-import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
 import { PuzzlePiece } from 'client/lib/engine/game/puzzle/PuzzlePiece';
-
-const PuzzleUVGenerator = (puzzleData, i) => {
-    const { pieceSize, width, height } = puzzleData;
-    const piece = puzzleData.pieces[i];
-
-    const x = pieceSize[0] * piece.x;
-    const y = pieceSize[1] * piece.y;
-
-    return {
-        generateTopUV: function(geometry, vertices, indexA, indexB, indexC) {
-            const a_x = (vertices[indexA * 3] + x) / width;
-            const a_y = (height - (vertices[indexA * 3 + 1] + y)) / height;
-            const b_x = (vertices[indexB * 3] + x) / width;
-            const b_y = (height - (vertices[indexB * 3 + 1] + y)) / height;
-            const c_x = (vertices[indexC * 3] + x) / width;
-            const c_y = (height - (vertices[indexC * 3 + 1] + y)) / height;
-
-            return [
-                new Vector2(a_x, a_y),
-                new Vector2(b_x, b_y),
-                new Vector2(c_x, c_y),
-            ];
-        },
-
-        generateSideWallUV: function() {
-            const nullVec = new Vector2(0, 1);
-            return [nullVec, nullVec, nullVec, nullVec];
-        },
-    };
-};
 
 export const PuzzleRenderPage = function PuzzleRenderPage() {
     return {
