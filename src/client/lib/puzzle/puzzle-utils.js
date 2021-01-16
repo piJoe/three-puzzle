@@ -674,8 +674,8 @@ export const generatePuzzleBoxTexture = async function generatePuzzleBoxTexture(
 
     //@todo: fix margin (must *not* be based solely on width)
     const imageMargin = width * 0.05;
-    const imageWidth = width - imageMargin*2;
-    const imageHeight = height - imageMargin*2;
+    const imageWidth = width - imageMargin * 2;
+    const imageHeight = height - imageMargin * 2;
 
     /** setup */
     const c = new OffscreenCanvas(totalWidth, totalHeight);
@@ -693,7 +693,7 @@ export const generatePuzzleBoxTexture = async function generatePuzzleBoxTexture(
     /** draw top */
     ctx.fillStyle = bgGradient;
     ctx.fillRect(...top);
-    ctx.drawImage(puzzleImage, top[0]+imageMargin, top[1]+imageMargin, imageWidth, imageHeight);
+    ctx.drawImage(puzzleImage, top[0] + imageMargin, top[1] + imageMargin, imageWidth, imageHeight);
 
     //@todo: render remaining faces
 

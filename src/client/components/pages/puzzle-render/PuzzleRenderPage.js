@@ -52,6 +52,8 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { includes } from 'ramda';
 import { UVBoxBufferGeometry } from 'client/lib/engine/UVBoxBufferGeometry';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
+import { PuzzlePiece } from 'client/lib/engine/game/puzzle/PuzzlePiece';
 
 const PuzzleUVGenerator = (puzzleData, i) => {
     const { pieceSize, width, height } = puzzleData;
@@ -92,6 +94,10 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             const puzzleData = store.puzzleData;
             const puzzlePaths = generatePuzzlePaths(puzzleData);
+            puzzleData.pieces.forEach((p, idx) => {
+                const path = puzzlePaths[idx];
+                p.shape = createShapeFromPath(path);
+            });
             // console.log(puzzlePaths);
 
             const raycaster = new Raycaster();
@@ -363,58 +369,12 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             const mergeGroup = new MergeGameObjectGroup(material);
             scene.add(mergeGroup);
+            puzzleData.mergeGroup = mergeGroup;
 
-            for (let i = 0; i < puzzlePaths.length; i++) {
+            for (let i = 0; i < puzzleData.pieces.length; i++) {
+                const base = new PuzzlePiece(puzzleData, i);
+
                 const puzzlePiece = puzzleData.pieces[i];
-                const shape = createShapeFromPath(puzzlePaths[i]);
-
-                extrudeSettings.UVGenerator = PuzzleUVGenerator(puzzleData, i);
-                const geometry = new SimpleExtrudeBufferGeometry(
-                    shape,
-                    extrudeSettings,
-                );
-                // geometry.center();
-                geometry.rotateX(Math.PI / 2);
-                // geometry.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
-
-                const outlineGeo = new SimpleExtrudeBufferGeometry(
-                    shape,
-                    {
-                        ...extrudeSettings,
-                        offset: pieceMaxSize / 100,
-                        depth: pieceMaxSize / 15,
-                    },
-                );
-                outlineGeo.rotateX(Math.PI / 2);
-                const outlineMesh = new Mesh(outlineGeo, outlineMat);
-                outlineMesh.name = 'outline';
-                outlineMesh.position.set(
-                    0,
-                    pieceMaxSize / 100,
-                    0,
-                );
-                outlineMesh.layers.set(LayerDefintion.DEFAULT);
-                outlineMesh.visible = false;
-
-                // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
-                const shadowMesh = new Mesh(outlineGeo, fakeFullShadowMat);
-                shadowMesh.name = 'shadow';
-                // shadowMesh.rotateX(-Math.PI / 2);
-                // shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0098, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);
-                shadowMesh.position.set(
-                    0,
-                    -0.0099,
-                    0,
-                );
-                shadowMesh.layers.set(LayerDefintion.DEFAULT);
-                shadowMesh.visible = false;
-
-                const base = new MergeableGameObjectMesh(mergeGroup, geometry, {
-                    selectMesh: outlineMesh,
-                    shadowMesh: shadowMesh,
-                });
-                base.layers.set(LayerDefintion.INTERACTABLE);
-
                 base.puzzleInfo = puzzlePiece;
                 // base.layers.set(1);
 
@@ -536,6 +496,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                         const intersects = raycaster.intersectObjects(
                             pieceMeshes,
                         );
+                        console.log(intersects);
                         if (intersects.length > 0) {
                             // raycastPoint.position.copy(intersects[0].point);
                             // console.log(mouse, intersects[0]);
