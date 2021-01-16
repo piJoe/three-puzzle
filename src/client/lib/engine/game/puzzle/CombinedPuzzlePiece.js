@@ -5,7 +5,7 @@ import { Matrix4 } from 'three';
 export class CombinedPuzzlePiece extends MergeableGameObjectMesh {
     constructor(puzzle, puzzlePieceIndexes) {
         puzzlePieceIndexes = puzzlePieceIndexes.filter((p, i, a) => a.indexOf(p) === i);
-        console.log('add pieces', puzzlePieceIndexes, null);
+        // console.log('add pieces', puzzlePieceIndexes, null);
         if (puzzlePieceIndexes.length === 0) return;
 
         const geometry = BufferGeometryUtils.mergeBufferGeometries(puzzlePieceIndexes.map(idx => {
@@ -34,7 +34,7 @@ export class CombinedPuzzlePiece extends MergeableGameObjectMesh {
 
     addPieces(pieceIndexes) {
         pieceIndexes = pieceIndexes.filter((p, i, a) => a.indexOf(p) === i && this.pieces.indexOf(p) === -1);
-        console.log('add pieces', pieceIndexes, this);
+        // console.log('add pieces', pieceIndexes, this);
         if (pieceIndexes.length === 0) return;
 
         const newGeometry = BufferGeometryUtils.mergeBufferGeometries(pieceIndexes.map(idx => {
@@ -58,9 +58,9 @@ export class CombinedPuzzlePiece extends MergeableGameObjectMesh {
 
     onDrop(event) {
         super.onDrop(event);
-        // const newNeighbours = this.pieces.reduce((acc, idx) => {
-        //     return [...acc, ...this.puzzle.pieces[idx].puzzlePiece.checkNeighbours(true)];
-        // }, []).filter((p, i, arr) => arr.indexOf(p) === i && this.pieces.indexOf(p) === -1);
-        // console.log('new pieces to connect', newNeighbours, this.pieces);
+        const newNeighbours = this.pieces.reduce((acc, idx) => {
+            return [...acc, ...this.puzzle.pieces[idx].puzzlePiece.checkNeighbours(true)];
+        }, []).filter((p, i, arr) => arr.indexOf(p) === i && this.pieces.indexOf(p) === -1);
+        console.log('new pieces to connect', newNeighbours, this.pieces);
     }
 }

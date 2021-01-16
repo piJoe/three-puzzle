@@ -57,18 +57,16 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
                 .clone()
                 .add(selfOffset);
             if (puzzlePiece.combinedPiece) {
-                continue;
-                // console.log('THIS SHOULD NEVER EVER HAPPEN!');
-                // selfPos.add(puzzlePiece.combinedPiece.targetPosition);
-                // combinedPiece = puzzlePiece.combinedPiece;
+                if (!returnNeighbours) {
+                    continue;
+                }
+                selfPos.add(puzzlePiece.combinedPiece.targetPosition);
             }
 
             const neighbourOffset = this.puzzle.neighbourOffsets[(i + 2) % 4];
             const neighbourPos = neighbour.targetPosition.clone().add(neighbourOffset);
             if (neighbourPiece.combinedPiece) {
-                const oldNP = neighbourPos.clone();
                 neighbourPos.add(neighbourPiece.combinedPiece.targetPosition);
-                console.log('neighbour is combined!',oldNP, neighbourPos);
                 combinedPiece = neighbourPiece.combinedPiece;
             }
 
