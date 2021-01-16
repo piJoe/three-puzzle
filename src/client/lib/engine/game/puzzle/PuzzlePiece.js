@@ -42,6 +42,7 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
             i < puzzlePiece.neighbours.length;
             i++
         ) {
+            combinedPiece = null;
             const neighbourNo =
                 puzzlePiece.neighbours[i];
             if (neighbourNo < 0) {
@@ -65,7 +66,9 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
             const neighbourOffset = this.puzzle.neighbourOffsets[(i + 2) % 4];
             const neighbourPos = neighbour.targetPosition.clone().add(neighbourOffset);
             if (neighbourPiece.combinedPiece) {
+                const oldNP = neighbourPos.clone();
                 neighbourPos.add(neighbourPiece.combinedPiece.targetPosition);
+                console.log('neighbour is combined!',oldNP, neighbourPos);
                 combinedPiece = neighbourPiece.combinedPiece;
             }
 
@@ -79,7 +82,10 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
                     NEIGHBOUR_SIDES.getSideName(i),
                     distance,
                 );
-                const newPos = neighbour.targetPosition.clone().add(neighbourOffset).sub(selfOffset);
+                const newPos = neighbourPos.sub(selfOffset);
+                if (neighbourPiece.combinedPiece) {
+                    newPos.sub(neighbourPiece.combinedPiece.targetPosition);
+                }
 
                 //@todo: combine as combined puzzle piece, update reference in this.puzzle.pieces, remove ourself from scene
                 toConnect.push(neighbour.pieceIndex);
@@ -94,13 +100,12 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
         }
 
         if (toConnect.length > 0) {
+            toConnect.push(this.pieceIndex);
             if (combinedPiece) {
                 combinedPiece.addPieces(toConnect);
             } else {
-                toConnect.push(this.pieceIndex);
                 new CombinedPuzzlePiece(this.puzzle, toConnect);
             }
-            console.log('add pieces', toConnect, combinedPiece);
         }
     }
 
