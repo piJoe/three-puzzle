@@ -76,7 +76,7 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
 
         // @todo: create merged mesh, hide all pieces, add merge mesh to scene and return as well
         const mergeGeos = [];
-        for(let i = 0; i < this.group.length; i++) {
+        for (let i = 0; i < this.group.length; i++) {
             const piece = this.group[i];
             const matrix = piece.matrix;
             mergeGeos.push(this.group[i].geometry.clone().applyMatrix4(matrix));
@@ -84,7 +84,7 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
         }
         const selectGroupGeo = BufferGeometryUtils.mergeBufferGeometries(mergeGeos);
         const mergedPiece = new GameObjectMesh(selectGroupGeo, this.material, {
-            name: 'Merged Piece'
+            name: 'Merged Piece',
         });
         window.scene.add(mergedPiece);
         this.getGroupLeader().mergedMesh = mergedPiece;
@@ -93,11 +93,10 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
 
     attachToMergeGroup() {
         super.attachToMergeGroup();
-        console.log('update merged state');
 
         // drop complete, check if we are merged with other pieces, clear merged geo and set every piece back to be interactable
         if (this.mergedMesh !== null && this.isGroupLeader()) {
-            for(let i = 0; i < this.group.length; i++) {
+            for (let i = 0; i < this.group.length; i++) {
                 const piece = this.group[i];
                 piece.layers.set(LayerDefintion.INTERACTABLE);
             }
