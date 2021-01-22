@@ -120,6 +120,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             window.addEventListener('pointerup', (e) => key(e.button, false));
 
             const scene = new Scene();
+            window.scene = scene; // @todo: make proper global module from this
 
             const listener = new AudioListener();
             camera.add(listener);
@@ -539,7 +540,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     pickedObject.forEach(o => o.unselect());
                     pickedObject.forEach(o => o.onDrop());
 
-                    pickedObject.forEach(gObj => {
+                    pickedObject.filter(gObj => gObj instanceof PuzzlePiece).forEach(gObj => {
                         for (
                             let i = 0;
                             i < gObj.puzzleInfo.neighbours.length;

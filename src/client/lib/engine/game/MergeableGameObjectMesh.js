@@ -14,14 +14,23 @@ export class MergeableGameObjectMesh extends GameObjectMesh {
         this.mergeGroup.add(this);
     }
 
+    detachFromMergeGroup() {
+        this.visible = true;
+        this.mergeGroup.hideVertices(this);
+        this.lastChanged = getGlobalTime();
+    }
+
+    attachToMergeGroup() {
+        this.visible = false;
+        this.mergeGroup.updateVertices(this);
+    }
+
     tick() {
         const changed = super.tick();
 
         if (changed && this.visible === false) {
-            this.visible = true;
-            this.mergeGroup.hideVertices(this);
-            this.lastChanged = getGlobalTime();
-            return;
+            this.detachFromMergeGroup();
+            return true;
         }
 
         if (!changed &&
@@ -29,9 +38,8 @@ export class MergeableGameObjectMesh extends GameObjectMesh {
             !this.isPicked &&
             !this.isSelected &&
             getGlobalTime() - this.lastChanged > CHANGE_TRESHOLD) {
-
-            this.visible = false;
-            this.mergeGroup.updateVertices(this);
+            this.attachToMergeGroup();
         }
+        return changed;
     }
 }

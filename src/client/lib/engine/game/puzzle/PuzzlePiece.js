@@ -1,6 +1,9 @@
 import { MergeableGameObjectMesh } from 'client/lib/engine/game/MergeableGameObjectMesh';
 import { SimpleExtrudeBufferGeometry } from 'client/lib/engine/SimpleExtrudeBufferGeometry';
 import { Vector2 } from 'three';
+import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
+import { GameObjectMesh } from 'client/lib/engine/game/GameObjectMesh';
+import { LayerDefintion } from 'client/lib/engine/layers';
 
 /*
 puzzle -> {
@@ -61,6 +64,47 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
         // shadowMesh.visible = false;
 
         super(puzzle.mergeGroup, geometry);
+
+        this.mergedMesh = null;
+        this.isMerged = false;
+    }
+
+    select() {
+        if (this.group === null) {
+            return [this];
+        }
+
+        // @todo: create merged mesh, hide all pieces, add merge mesh to scene and return as well
+        const mergeGeos = [];
+        for(let i = 0; i < this.group.length; i++) {
+            const piece = this.group[i];
+            const matrix = piece.matrix;
+            mergeGeos.push(this.group[i].geometry.clone().applyMatrix4(matrix));
+            piece.layers.set(LayerDefintion.INVISIBLE);
+        }
+        const selectGroupGeo = BufferGeometryUtils.mergeBufferGeometries(mergeGeos);
+        const mergedPiece = new GameObjectMesh(selectGroupGeo, this.material, {
+            name: 'Merged Piece'
+        });
+        window.scene.add(mergedPiece);
+        this.getGroupLeader().mergedMesh = mergedPiece;
+        return [...this.group, mergedPiece]; // return as new array, so we're safe from mutation
+    }
+
+    attachToMergeGroup() {
+        super.attachToMergeGroup();
+        console.log('update merged state');
+
+        // drop complete, check if we are merged with other pieces, clear merged geo and set every piece back to be interactable
+        if (this.mergedMesh !== null && this.isGroupLeader()) {
+            for(let i = 0; i < this.group.length; i++) {
+                const piece = this.group[i];
+                piece.layers.set(LayerDefintion.INTERACTABLE);
+            }
+            this.mergedMesh.geometry.dispose();
+            window.scene.remove(this.mergedMesh); // @todo: fix discouraged behaviour! scene graph should not be changed when inside a `traverse`
+            this.mergedMesh = null;
+        }
     }
 }
 
