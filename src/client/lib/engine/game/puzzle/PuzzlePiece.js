@@ -66,7 +66,6 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
         super(puzzle.mergeGroup, geometry);
 
         this.mergedMesh = null;
-        this.isMerged = false;
     }
 
     select() {
@@ -110,7 +109,7 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
 
 const extrudeSettings = {
     steps: 1,
-    depth: 0.0012,
+    depth: 0.0014,
     offset: -0.00003,
 };
 
