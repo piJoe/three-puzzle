@@ -1,9 +1,9 @@
 import { MergeableGameObjectMesh } from 'client/lib/engine/game/MergeableGameObjectMesh';
 import { SimpleExtrudeBufferGeometry } from 'client/lib/engine/SimpleExtrudeBufferGeometry';
 import { Vector2 } from 'three';
-import { NEIGHBOUR_SIDES } from 'client/lib/puzzle/puzzle-utils';
-import { setTargetPositionGroup } from 'client/lib/engine/game/TweenObject';
-import { CombinedPuzzlePiece } from 'client/lib/engine/game/puzzle/CombinedPuzzlePiece';
+import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils';
+import { GameObjectMesh } from 'client/lib/engine/game/GameObjectMesh';
+import { LayerDefintion } from 'client/lib/engine/layers';
 
 /*
 puzzle -> {
@@ -23,87 +23,46 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
     constructor(puzzle, pieceIndex) {
         const geometry = createPieceGeometry(puzzle, pieceIndex);
         super(puzzle.mergeGroup, geometry);
-        this.name = 'Puzzle Piece';
 
-        this.puzzle = puzzle;
-        this.pieceIndex = pieceIndex;
-
-        this.puzzle.pieces[this.pieceIndex].puzzlePiece = this;
+        this.mergedMesh = null;
     }
 
-    checkNeighbours(returnNeighbours = false) {
-        console.log('========= begin check neighbour');
-        const puzzlePiece = this.puzzle.pieces[this.pieceIndex];
-
-        const toConnect = [];
-        let combinedPiece = null;
-        for (
-            let i = 0;
-            i < puzzlePiece.neighbours.length;
-            i++
-        ) {
-            combinedPiece = null;
-            const neighbourNo =
-                puzzlePiece.neighbours[i];
-            if (neighbourNo < 0) {
-                continue;
-            }
-
-            const neighbourPiece = this.puzzle.pieces[neighbourNo];
-            const neighbour = neighbourPiece.puzzlePiece;
-            const selfOffset = this.puzzle.neighbourOffsets[i];
-
-            let selfPos = this.targetPosition
-                .clone()
-                .add(selfOffset);
-            if (puzzlePiece.combinedPiece) {
-                if (!returnNeighbours) {
-                    continue;
-                }
-                selfPos.add(puzzlePiece.combinedPiece.targetPosition);
-            }
-
-            const neighbourOffset = this.puzzle.neighbourOffsets[(i + 2) % 4];
-            const neighbourPos = neighbour.targetPosition.clone().add(neighbourOffset);
-            if (neighbourPiece.combinedPiece) {
-                neighbourPos.add(neighbourPiece.combinedPiece.targetPosition);
-                combinedPiece = neighbourPiece.combinedPiece;
-            }
-
-            const distance = selfPos.distanceTo(neighbourPos);
-
-            // if (distance < selfOffset.length() / 2) {
-            if (distance < 0.2) {
-                // clickSound.play();
-                console.log(
-                    '*CLICK*',
-                    NEIGHBOUR_SIDES.getSideName(i),
-                    distance,
-                );
-                const newPos = neighbourPos.sub(selfOffset);
-                if (neighbourPiece.combinedPiece) {
-                    newPos.sub(neighbourPiece.combinedPiece.targetPosition);
-                }
-
-                //@todo: combine as combined puzzle piece, update reference in this.puzzle.pieces, remove ourself from scene
-                toConnect.push(neighbour.pieceIndex);
-                if (!returnNeighbours) {
-                    this.moveToTargetPos(newPos); // do not move directly to this, use combinePuzzlePiece! only move to last target
-                    break;
-                }
-            }
-        }
-        if (returnNeighbours) {
-            return toConnect;
+    select() {
+        if (this.group === null) {
+            return [this];
         }
 
-        if (toConnect.length > 0) {
-            toConnect.push(this.pieceIndex);
-            if (combinedPiece) {
-                combinedPiece.addPieces(toConnect);
-            } else {
-                new CombinedPuzzlePiece(this.puzzle, toConnect);
+        // @todo: create merged mesh, hide all pieces, add merge mesh to scene and return as well, improve performance by reusing existing mesh?
+        console.time('merge');
+        const mergeGeos = [];
+        for (let i = 0; i < this.group.length; i++) {
+            const piece = this.group[i];
+            const matrix = piece.matrix;
+            mergeGeos.push(this.group[i].geometry.clone().applyMatrix4(matrix));
+            piece.layers.set(LayerDefintion.INVISIBLE);
+        }
+        const selectGroupGeo = BufferGeometryUtils.mergeBufferGeometries(mergeGeos);
+        const mergedPiece = new GameObjectMesh(selectGroupGeo, this.material, {
+            name: 'Merged Piece',
+        });
+        window.scene.add(mergedPiece);
+        this.getGroupLeader().mergedMesh = mergedPiece;
+        console.timeEnd('merge');
+        return [...this.group, mergedPiece]; // return as new array, so we're safe from mutation
+    }
+
+    attachToMergeGroup() {
+        super.attachToMergeGroup();
+
+        // drop complete, check if we are merged with other pieces, clear merged geo and set every piece back to be interactable
+        if (this.mergedMesh !== null && this.isGroupLeader()) { // @todo: remove mergedMesh EVERY TIME, not only for group leader
+            for (let i = 0; i < this.group.length; i++) {
+                const piece = this.group[i];
+                piece.layers.set(LayerDefintion.INTERACTABLE);
             }
+            this.mergedMesh.geometry.dispose();
+            window.scene.remove(this.mergedMesh); // @todo: fix discouraged behaviour! scene graph should not be changed when inside a `traverse`
+            this.mergedMesh = null;
         }
     }
 
@@ -166,7 +125,7 @@ function createPieceGeometry(puzzle, pieceIndex) {
 
 const extrudeSettings = {
     steps: 1,
-    depth: 0.0012,
+    depth: 0.0014,
     offset: -0.00003,
 };
 
@@ -191,6 +150,10 @@ const PuzzleUVGenerator = (puzzleData, i) => {
                 new Vector2(b_x, b_y),
                 new Vector2(c_x, c_y),
             ];
+        },
+        generateBotUV: function() {
+            const nullVec = new Vector2(0, 1);
+            return [nullVec, nullVec, nullVec, nullVec];
         },
 
         generateSideWallUV: function() {

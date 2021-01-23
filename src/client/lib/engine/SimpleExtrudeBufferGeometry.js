@@ -490,44 +490,44 @@ class SimpleExtrudeBufferGeometry extends BufferGeometry {
                     let layer = 0; // steps + 1
                     let offset = vlen * layer;
 
-                    // Bottom faces
+                    // Top faces
 
                     for ( let i = 0; i < flen; i ++ ) {
 
                         const face = faces[ i ];
-                        f3( face[ 2 ] + offset, face[ 1 ] + offset, face[ 0 ] + offset );
+                        f3( face[ 2 ] + offset, face[ 1 ] + offset, face[ 0 ] + offset, true );
 
                     }
 
                     layer = steps + bevelSegments * 2;
                     offset = vlen * layer;
 
-                    // Top faces
+                    // Bot faces
 
                     for ( let i = 0; i < flen; i ++ ) {
 
                         const face = faces[ i ];
-                        f3( face[ 0 ] + offset, face[ 1 ] + offset, face[ 2 ] + offset );
+                        f3( face[ 0 ] + offset, face[ 1 ] + offset, face[ 2 ] + offset, false );
 
                     }
 
                 } else {
 
-                    // Bottom faces
-
-                    for ( let i = 0; i < flen; i ++ ) {
-
-                        const face = faces[ i ];
-                        f3( face[ 2 ], face[ 1 ], face[ 0 ] );
-
-                    }
-
                     // Top faces
 
                     for ( let i = 0; i < flen; i ++ ) {
 
                         const face = faces[ i ];
-                        f3( face[ 0 ] + vlen * steps, face[ 1 ] + vlen * steps, face[ 2 ] + vlen * steps );
+                        f3( face[ 2 ], face[ 1 ], face[ 0 ], true );
+
+                    }
+
+                    // Bot faces
+
+                    for ( let i = 0; i < flen; i ++ ) {
+
+                        const face = faces[ i ];
+                        f3( face[ 0 ] + vlen * steps, face[ 1 ] + vlen * steps, face[ 2 ] + vlen * steps, false );
 
                     }
 
@@ -601,14 +601,19 @@ class SimpleExtrudeBufferGeometry extends BufferGeometry {
             }
 
 
-            function f3( a, b, c ) {
+            function f3( a, b, c, uvTop = true ) {
 
                 addVertex( a );
                 addVertex( b );
                 addVertex( c );
 
                 const nextIndex = verticesArray.length / 3;
-                const uvs = uvgen.generateTopUV( scope, verticesArray, nextIndex - 3, nextIndex - 2, nextIndex - 1 );
+                let uvs = null;
+                if (uvTop) {
+                    uvs = uvgen.generateTopUV( scope, verticesArray, nextIndex - 3, nextIndex - 2, nextIndex - 1 );
+                } else {
+                    uvs = uvgen.generateBotUV( scope, verticesArray, nextIndex - 3, nextIndex - 2, nextIndex - 1 );
+                }
 
                 addUV( uvs[ 0 ] );
                 addUV( uvs[ 1 ] );

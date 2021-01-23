@@ -120,6 +120,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             window.addEventListener('pointerup', (e) => key(e.button, false));
 
             const scene = new Scene();
+            window.scene = scene; // @todo: make proper global module from this
 
             const listener = new AudioListener();
             camera.add(listener);
@@ -325,7 +326,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const boxPos = new Vector3(lastPiece.x * puzzleData.pieceSize[0] * 1.6 / 2, boxDepth / 2, lastPiece.y * puzzleData.pieceSize[1] * 1.6 / 2);
             puzzleBox.position.copy(boxPos);
             puzzleBox.targetPosition.copy(boxPos);
-            scene.add(puzzleBox);
+            // scene.add(puzzleBox);
 
             puzzleData.neighbourOffsets = createNeighbourOffsets(
                 puzzleData.pieceSize[0],
@@ -346,11 +347,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 // base.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
                 // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
-                // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
-                const pos = validPositions.splice(
-                    Math.floor(Math.random() * validPositions.length),
-                    1,
-                )[0];
+                const pos = new Vector3(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
+                // const pos = validPositions.splice(
+                //     Math.floor(Math.random() * validPositions.length),
+                //     1,
+                // )[0];
                 base.position.copy(pos);
                 base.targetPosition.copy(pos);
                 // console.log(base.position);
@@ -538,6 +539,56 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                     pickedObject.forEach(o => o.unselect());
                     pickedObject.forEach(o => o.onDrop());
+
+                    pickedObject.filter(gObj => gObj instanceof PuzzlePiece).forEach(gObj => {
+                        for (
+                            let i = 0;
+                            i < gObj.puzzleInfo.neighbours.length;
+                            i++
+                        ) {
+                            const neighbourNo =
+                                gObj.puzzleInfo.neighbours[i];
+                            if (neighbourNo < 0) {
+                                continue;
+                            }
+
+
+                            const neighbour = pieceMeshes[neighbourNo];
+                            const selfOffset = neighbourOffsets[i];
+                            const neighbourOffset = neighbourOffsets[(i + 2) % 4];
+
+                            if (gObj.sameGroup(neighbour)) {
+                                continue;
+                            }
+
+                            const selfPos = gObj.targetPosition
+                                .clone()
+                                .add(selfOffset);
+                            const neighbourPos = (neighbour.targetPosition ? neighbour.targetPosition : neighbour.position)
+                                .clone()
+                                .add(neighbourOffset);
+                            const distance = selfPos.distanceTo(neighbourPos);
+                            //@todo: iterate through all neighbours distances, closest distance wins snapping
+
+                            if (distance < selfOffset.length() / 2) {
+                                gObj.addGroup(neighbour);
+                                clickSound.play();
+                                console.log(
+                                    '*CLICK*',
+                                    NEIGHBOUR_SIDES.getSideName(i),
+                                    distance,
+                                );
+                                const newPos = (neighbour.targetPosition ? neighbour.targetPosition : neighbour.position)
+                                    .clone()
+                                    .add(neighbourOffset)
+                                    .sub(selfOffset);
+
+                                setTargetPositionGroup(pickedObject, 'position', gObj.position, newPos);
+                                break;
+                            }
+                        }
+                    });
+
 
                     pickedObject = [];
 
