@@ -11,58 +11,17 @@ puzzle -> {
     pieceSize,
     pieces, => {
         neighbours,
-        shape
-    }
+        shape,
+        puzzlePieceRef
+    },
+    neighbourOffsets,
     mergeGroup
 } ==> Wird beim spawn aus der PuzzleBox angelegt/ergänzt?
  */
 
 export class PuzzlePiece extends MergeableGameObjectMesh {
     constructor(puzzle, pieceIndex) {
-        const { shape } = puzzle.pieces[pieceIndex];
-
-        extrudeSettings.UVGenerator = PuzzleUVGenerator(puzzle, pieceIndex);
-        const geometry = new SimpleExtrudeBufferGeometry(
-            shape,
-            extrudeSettings,
-        );
-        // geometry.center();
-        geometry.rotateX(Math.PI / 2);
-        // geometry.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
-
-        //@todo: fix outline and shadow geometries
-        // const outlineGeo = new SimpleExtrudeBufferGeometry(
-        //     shape,
-        //     {
-        //         ...extrudeSettings,
-        //         offset: pieceMaxSize / 100,
-        //         depth: pieceMaxSize / 15,
-        //     },
-        // );
-        // outlineGeo.rotateX(Math.PI / 2);
-        // const outlineMesh = new Mesh(outlineGeo, outlineMat);
-        // outlineMesh.name = 'outline';
-        // outlineMesh.position.set(
-        //     0,
-        //     pieceMaxSize / 100,
-        //     0,
-        // );
-        // outlineMesh.layers.set(LayerDefintion.DEFAULT);
-        // outlineMesh.visible = false;
-        //
-        // // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
-        // const shadowMesh = new Mesh(outlineGeo, fakeFullShadowMat);
-        // shadowMesh.name = 'shadow';
-        // // shadowMesh.rotateX(-Math.PI / 2);
-        // // shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0098, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);
-        // shadowMesh.position.set(
-        //     0,
-        //     -0.0099,
-        //     0,
-        // );
-        // shadowMesh.layers.set(LayerDefintion.DEFAULT);
-        // shadowMesh.visible = false;
-
+        const geometry = createPieceGeometry(puzzle, pieceIndex);
         super(puzzle.mergeGroup, geometry);
 
         this.mergedMesh = null;
@@ -106,6 +65,61 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
             this.mergedMesh = null;
         }
     }
+
+    onDrop(event) {
+        super.onDrop(event);
+        console.log('check neighbours, combine eventually');
+        this.checkNeighbours();
+    }
+}
+
+
+function createPieceGeometry(puzzle, pieceIndex) {
+    const { shape } = puzzle.pieces[pieceIndex];
+
+    extrudeSettings.UVGenerator = PuzzleUVGenerator(puzzle, pieceIndex);
+    const geometry = new SimpleExtrudeBufferGeometry(
+        shape,
+        extrudeSettings,
+    );
+    // geometry.center();
+    geometry.rotateX(Math.PI / 2);
+    // geometry.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
+
+    //@todo: fix outline and shadow geometries
+    // const outlineGeo = new SimpleExtrudeBufferGeometry(
+    //     shape,
+    //     {
+    //         ...extrudeSettings,
+    //         offset: pieceMaxSize / 100,
+    //         depth: pieceMaxSize / 15,
+    //     },
+    // );
+    // outlineGeo.rotateX(Math.PI / 2);
+    // const outlineMesh = new Mesh(outlineGeo, outlineMat);
+    // outlineMesh.name = 'outline';
+    // outlineMesh.position.set(
+    //     0,
+    //     pieceMaxSize / 100,
+    //     0,
+    // );
+    // outlineMesh.layers.set(LayerDefintion.DEFAULT);
+    // outlineMesh.visible = false;
+    //
+    // // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
+    // const shadowMesh = new Mesh(outlineGeo, fakeFullShadowMat);
+    // shadowMesh.name = 'shadow';
+    // // shadowMesh.rotateX(-Math.PI / 2);
+    // // shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0098, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);
+    // shadowMesh.position.set(
+    //     0,
+    //     -0.0099,
+    //     0,
+    // );
+    // shadowMesh.layers.set(LayerDefintion.DEFAULT);
+    // shadowMesh.visible = false;
+
+    return geometry;
 }
 
 

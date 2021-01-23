@@ -328,7 +328,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             puzzleBox.targetPosition.copy(boxPos);
             // scene.add(puzzleBox);
 
-            const neighbourOffsets = createNeighbourOffsets(
+            puzzleData.neighbourOffsets = createNeighbourOffsets(
                 puzzleData.pieceSize[0],
                 puzzleData.pieceSize[1],
             );
@@ -343,7 +343,6 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 const base = new PuzzlePiece(puzzleData, i);
 
                 const puzzlePiece = puzzleData.pieces[i];
-                base.puzzleInfo = puzzlePiece;
                 // base.layers.set(1);
 
                 // base.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
@@ -462,9 +461,10 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                     if (pickupDown) {
                         raycaster.layers.set(LayerDefintion.INTERACTABLE);
                         const intersects = raycaster.intersectObjects(
-                            pieceMeshes,
+                            scene.children,
+                            true
                         );
-                        console.log(intersects);
+                        // console.log(intersects);
                         if (intersects.length > 0) {
                             // raycastPoint.position.copy(intersects[0].point);
                             // console.log(mouse, intersects[0]);
