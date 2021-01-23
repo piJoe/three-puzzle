@@ -36,6 +36,7 @@ export class MergeGameObjectGroup extends Mesh {
             }
             this.geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
             this.geometryNeedsUpdate = false;
+            //@todo: recalculate bounding box for culling!!
         }
     }
 
