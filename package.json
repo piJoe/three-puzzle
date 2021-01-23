@@ -18,7 +18,6 @@
     "mithril": "^2.0.4",
     "node-gzip": "^1.1.2",
     "node-sass": "^5.0.0",
-    "npm": "^7.4.3",
     "ramda": "^0.27.1",
     "rollup": "^2.35.1",
     "rollup-plugin-copy": "^3.3.0",
