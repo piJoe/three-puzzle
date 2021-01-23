@@ -73,7 +73,8 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
             return [this];
         }
 
-        // @todo: create merged mesh, hide all pieces, add merge mesh to scene and return as well
+        // @todo: create merged mesh, hide all pieces, add merge mesh to scene and return as well, improve performance by reusing existing mesh?
+        console.time('merge');
         const mergeGeos = [];
         for (let i = 0; i < this.group.length; i++) {
             const piece = this.group[i];
@@ -87,6 +88,7 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
         });
         window.scene.add(mergedPiece);
         this.getGroupLeader().mergedMesh = mergedPiece;
+        console.timeEnd('merge');
         return [...this.group, mergedPiece]; // return as new array, so we're safe from mutation
     }
 
@@ -94,7 +96,7 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
         super.attachToMergeGroup();
 
         // drop complete, check if we are merged with other pieces, clear merged geo and set every piece back to be interactable
-        if (this.mergedMesh !== null && this.isGroupLeader()) {
+        if (this.mergedMesh !== null && this.isGroupLeader()) { // @todo: remove mergedMesh EVERY TIME, not only for group leader
             for (let i = 0; i < this.group.length; i++) {
                 const piece = this.group[i];
                 piece.layers.set(LayerDefintion.INTERACTABLE);

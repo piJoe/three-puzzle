@@ -326,7 +326,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             const boxPos = new Vector3(lastPiece.x * puzzleData.pieceSize[0] * 1.6 / 2, boxDepth / 2, lastPiece.y * puzzleData.pieceSize[1] * 1.6 / 2);
             puzzleBox.position.copy(boxPos);
             puzzleBox.targetPosition.copy(boxPos);
-            scene.add(puzzleBox);
+            // scene.add(puzzleBox);
 
             const neighbourOffsets = createNeighbourOffsets(
                 puzzleData.pieceSize[0],
@@ -348,11 +348,11 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
                 // base.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
                 // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x * 1.6, 0, puzzleData.pieceSize[1] * puzzlePiece.y * 1.6);
-                // base.position.set(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
-                const pos = validPositions.splice(
-                    Math.floor(Math.random() * validPositions.length),
-                    1,
-                )[0];
+                const pos = new Vector3(puzzleData.pieceSize[0] * puzzlePiece.x, 0, puzzleData.pieceSize[1] * puzzlePiece.y);
+                // const pos = validPositions.splice(
+                //     Math.floor(Math.random() * validPositions.length),
+                //     1,
+                // )[0];
                 base.position.copy(pos);
                 base.targetPosition.copy(pos);
                 // console.log(base.position);
