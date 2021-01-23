@@ -136,6 +136,10 @@ const PuzzleUVGenerator = (puzzleData, i) => {
                 new Vector2(c_x, c_y),
             ];
         },
+        generateBotUV: function() {
+            const nullVec = new Vector2(0, 1);
+            return [nullVec, nullVec, nullVec, nullVec];
+        },
 
         generateSideWallUV: function() {
             const nullVec = new Vector2(0, 1);
