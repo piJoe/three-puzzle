@@ -1,3 +1,7 @@
+body {
+  overflow: hidden;
+}
+
 .game-canvas {
   width: 100vw;
   height: 100vh;
@@ -57,4 +61,19 @@
   &:hover {
     background: rgba(255,255,255,0.1);
   }
+}
+
+.game-main {
+  cursor: none;
+}
+
+.game-cursor {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  z-index:999;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0Ny41MyA0Ny41MiI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjx0aXRsZT5FbGVtZW50IDE8L3RpdGxlPjxnIGlkPSJFYmVuZV8yIiBkYXRhLW5hbWU9IkViZW5lIDIiPjxnIGlkPSJFYmVuZV8xLTIiIGRhdGEtbmFtZT0iRWJlbmUgMSI+PHBhdGggZD0iTTE5LjM1LDQ3YS43OS43OSwwLDAsMS0uNzQtLjVMLjU2LDEuNkEuOC44LDAsMCwxLDEuMy41YS44MS44MSwwLDAsMSwuMy4wNkw0Ni41MywxOC42MmEuNzkuNzksMCwwLDEsLjExLDEuNEwzMC4wOSwzMC4wOSwyMCw0Ni42NGEuNzkuNzksMCwwLDEtLjY4LjM4WiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTEuMywxbC4xMSwwTDQ2LjM1LDE5LjA5YS4yOS4yOSwwLDAsMSwwLC41MUwyOS43OSwyOS42OGEuMzEuMzEsMCwwLDAtLjEuMUwxOS42MSw0Ni4zOGEuMjkuMjksMCwwLDEtLjUzLDBMMSwxLjQxQS4zLjMsMCwwLDEsMS4zLDFtMC0xQTEuMywxLjMsMCwwLDAsLjA5LDEuNzhMMTguMTUsNDYuNzFhMS4yOSwxLjI5LDAsMCwwLDIuMzEuMTlsMTAtMTYuNDQsMTYuNDYtMTBhMS4yOSwxLjI5LDAsMCwwLS4xOS0yLjI5TDEuNzguMDlBMS4zLDEuMywwLDAsMCwxLjMsMFoiLz48L2c+PC9nPjwvc3ZnPg==");
 }

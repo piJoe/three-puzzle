@@ -89,6 +89,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
             const pickHeight = 0.01;
 
+            const gCursor = vnode.dom.querySelector('.game-cursor');
+            const cursorPos = new Vector2();
             function onMouseMove(event) {
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -105,6 +107,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 //@todo: should be .z for camerapos and mouseVec
                 const distance = (pickHeight - cameraWorldPos.y) / mouseVec.y;
                 mousePos.copy(cameraWorldPos).add(mouseVec.multiplyScalar(distance));
+
+                cursorPos.set(event.clientX, event.clientY);
             }
 
             window.addEventListener('pointermove', onMouseMove);
@@ -615,6 +619,9 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                 });
                 composer.render();
 
+                gCursor.style.top = `${cursorPos.y}px`;
+                gCursor.style.left = `${cursorPos.x}px`;
+
                 const tickEndTime = performance.now();
                 delta100Ticks += tickEndTime - tickStartTime;
                 tickCount++;
@@ -649,8 +656,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             m('a.game-menu-item', 'Spawn Puzzle'),
                         ]),
                     ]),
-
                 ]),
+                m('.game-cursor'),
             ]);
         },
     };
