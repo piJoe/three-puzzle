@@ -1,7 +1,3 @@
-body {
-  overflow: hidden;
-}
-
 .game-canvas {
   width: 100vw;
   height: 100vh;
@@ -64,6 +60,8 @@ body {
 }
 
 .game-main {
+  position: relative;
+  overflow: hidden;
   cursor: none;
 }
 
