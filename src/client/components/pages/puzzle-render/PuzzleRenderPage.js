@@ -51,6 +51,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { includes } from 'ramda';
 import { UVBoxBufferGeometry } from 'client/lib/engine/UVBoxBufferGeometry';
 import { PuzzlePiece } from 'client/lib/engine/game/puzzle/PuzzlePiece';
+import { OutlinePass } from 'client/lib/engine/render-passes/OutlinePass';
 
 export const PuzzleRenderPage = function PuzzleRenderPage() {
     return {
@@ -165,8 +166,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             canvasDOM.appendChild(renderer.domElement);
 
             const composer = new EffectComposer(renderer);
-            const renderPass = new RenderPass(scene, camera);
-            composer.addPass(renderPass);
+            // const renderPass = new RenderPass(scene, camera);
+            // composer.addPass(renderPass);
             // const saoPass = new SAOPass( scene, camera, false, true );
             // saoPass.params = {
             //     ...saoPass.params,
@@ -177,6 +178,8 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             //     saoScale: 2,
             // };
             // composer.addPass( saoPass );
+            const outlinePass = new OutlinePass(scene, camera, []);
+            composer.addPass(outlinePass);
 
             const pmremGenerator = new PMREMGenerator(renderer);
             pmremGenerator.compileEquirectangularShader();
@@ -470,6 +473,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
                             // console.log(mouse, intersects[0]);
                             const gObj = intersects[0].object;
                             pickedObject = gObj.select();
+                            outlinePass.outlinedObjects = pickedObject;
                             // grabOffset.set(
                             //     intersects[0].point.x - pickedObject[0].position.x,
                             //     intersects[0].point.z - pickedObject[0].position.z,
@@ -591,6 +595,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
 
 
                     pickedObject = [];
+                    outlinePass.outlinedObjects = pickedObject;
 
                     connectLine.geometry.vertices = [
                         nullVec,
