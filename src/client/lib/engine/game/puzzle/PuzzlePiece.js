@@ -30,28 +30,8 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
         geometry.rotateX(Math.PI / 2);
         // geometry.rotateY(MathUtils.degToRad(Math.round(Math.random() * 8) * 45));
 
-        //@todo: fix outline and shadow geometries
-        // const outlineGeo = new SimpleExtrudeBufferGeometry(
-        //     shape,
-        //     {
-        //         ...extrudeSettings,
-        //         offset: pieceMaxSize / 100,
-        //         depth: pieceMaxSize / 15,
-        //     },
-        // );
-        // outlineGeo.rotateX(Math.PI / 2);
-        // const outlineMesh = new Mesh(outlineGeo, outlineMat);
-        // outlineMesh.name = 'outline';
-        // outlineMesh.position.set(
-        //     0,
-        //     pieceMaxSize / 100,
-        //     0,
-        // );
-        // outlineMesh.layers.set(LayerDefintion.DEFAULT);
-        // outlineMesh.visible = false;
-        //
-        // // const shadowMesh = new Mesh(shadowGeo, fakeShadowMat);
-        // const shadowMesh = new Mesh(outlineGeo, fakeFullShadowMat);
+        //@todo: fix shadow geometries
+        // const shadowMesh = new Mesh(geometry, fakeFullShadowMat);
         // shadowMesh.name = 'shadow';
         // // shadowMesh.rotateX(-Math.PI / 2);
         // // shadowMesh.position.set(pieceMaxSize / 2 - puzzleData.pieceSize[0] / 2, -0.0098, pieceMaxSize / 2 - puzzleData.pieceSize[1] / 2);

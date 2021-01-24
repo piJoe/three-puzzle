@@ -101,22 +101,3 @@ export class OutlinePass extends Pass {
         renderer.autoClear = oldAutoClear;
     }
 }
-
-export function setupGeometryForOutline(geometry) {
-    const vectors = [
-        new Vector3(1, 0, 0),
-        new Vector3(0, 1, 0),
-        new Vector3(0, 0, 1),
-    ];
-
-    const position = geometry.attributes.position;
-    const centers = new Float32Array(position.count * 3);
-
-    for (let i = 0, l = position.count; i < l; i++) {
-
-        vectors[i % 3].toArray(centers, i * 3);
-
-    }
-
-    geometry.setAttribute('center', new BufferAttribute(centers, 3));
-}

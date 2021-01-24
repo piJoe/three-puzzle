@@ -14,31 +14,20 @@ export class GameObject extends TweenObject {
         this.isSelected = false;
         this.isPicked = false;
 
-        // this.parentGameObject = null;
-        // @todo: group restlos entfernen. wird nicht benötigt. handling für puzzle pieces über eigenes PuzzlePieceObject sinnvoller (geo merging, position store etc.)
+        // @todo: improve performance for group?? :shrug:
         this.group = null;
 
         this.shadowMesh = null;
-        this.selectMesh = null;
         if (options.shadowMesh) {
             this.shadowMesh = options.shadowMesh;
             this.shadowMesh.visible = false;
             this.shadowMesh.layers.set(LayerDefintion.IGNORE_RAYCAST);
             this.add(this.shadowMesh);
         }
-        if (options.selectMesh) {
-            this.selectMesh = options.selectMesh;
-            this.selectMesh.visible = false;
-            this.selectMesh.layers.set(LayerDefintion.IGNORE_RAYCAST);
-            this.add(this.selectMesh);
-        }
     }
 
     updateSelectState(selected) {
         this.isSelected = selected;
-        if (this.selectMesh !== null) {
-            this.selectMesh.visible = selected;
-        }
     }
 
     updateShadowState(shadowActive) {
@@ -61,14 +50,6 @@ export class GameObject extends TweenObject {
 
     unselect() {
         this.updateSelectState(false);
-        // if (this.group === null) {
-        //     return;
-        // }
-        // for(let i = 0; i < this.group; i++) {
-        //     const gObj = this.group[i];
-        //     gObj.updateSelectState(false);
-        // }
-        // return;
     }
 
     canBeSelected() {
@@ -80,15 +61,10 @@ export class GameObject extends TweenObject {
 
     onPickUp(event) {
         this.isPicked = true;
-        // this.updateShadowState(true);
     }
 
     onDrop(event) {
         this.isPicked = false;
-        // window.setTimeout(() => {
-        //         this.updateShadowState(false);
-        //     }, 80,
-        // );
     }
 
     updateGroup(newGroup) {
