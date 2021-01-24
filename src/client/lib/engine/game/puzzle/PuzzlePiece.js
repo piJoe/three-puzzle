@@ -108,7 +108,6 @@ export class PuzzlePiece extends MergeableGameObjectMesh {
     }
 }
 
-
 const extrudeSettings = {
     steps: 1,
     depth: 0.0014,
