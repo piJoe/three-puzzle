@@ -300,7 +300,7 @@ export const PuzzleRenderPage = function PuzzleRenderPage() {
             plane.rotateX(-Math.PI / 2);
             plane.translate(
                 (puzzleData.width * 2.2) / 3,
-                -(pieceMaxSize / 20),
+                -(0.0014),
                 (puzzleData.height * 2.2) / 3,
             );
             const planeM = new Mesh(plane, planeMaterial);

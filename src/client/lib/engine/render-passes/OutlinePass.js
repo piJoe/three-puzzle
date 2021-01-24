@@ -1,7 +1,7 @@
 import { Pass } from 'three/examples/jsm/postprocessing/Pass';
 import { MeshBasicMaterial } from 'three/src/materials/MeshBasicMaterial';
 import { LayerDefintion } from 'client/lib/engine/layers';
-import { BufferAttribute, DoubleSide, Layers, ShaderMaterial, Vector3 } from 'three';
+import { BufferAttribute, Layers, Vector3 } from 'three';
 
 export class OutlinePass extends Pass {
     constructor(scene, camera, outlinedObjects = []) {
@@ -18,7 +18,7 @@ export class OutlinePass extends Pass {
         this.wireframeMaterial = new MeshBasicMaterial({
             color: 0xffff00,
             wireframe: true,
-            depthTest: false,
+            // depthTest: false,
             depthWrite: false,
         });
 
@@ -45,7 +45,7 @@ export class OutlinePass extends Pass {
         if (this.outlinedObjects.length > 0) {
 
             for (let obj of this.outlinedObjects) {
-                if (obj.layers.test(this.ignoreLayers)) {
+                if (obj.layers.test(this.ignoreLayers) || !obj.visible) {
                     continue;
                 }
                 obj.layers.enable(LayerDefintion.OUTLINE);
