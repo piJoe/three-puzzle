@@ -6,6 +6,7 @@ export class MergeGameObjectGroup extends Mesh {
     constructor(material) {
         super(new BufferGeometry(), material);
         this.geometryNeedsUpdate = false;
+        this.frustumCulled = false;
     }
 
     add(...object) {
@@ -36,7 +37,6 @@ export class MergeGameObjectGroup extends Mesh {
             }
             this.geometry = BufferGeometryUtils.mergeBufferGeometries(geometries);
             this.geometryNeedsUpdate = false;
-            //@todo: recalculate bounding box for culling!!
         }
     }
 
